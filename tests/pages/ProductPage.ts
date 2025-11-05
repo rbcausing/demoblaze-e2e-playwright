@@ -19,14 +19,18 @@ export class ProductPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.productTitle = page.locator('[data-testid="product-title"]');
-    this.productPrice = page.locator('[data-testid="product-price"]');
-    this.productDescription = page.locator('[data-testid="product-description"]');
-    this.productImages = page.locator('[data-testid="product-images"]');
+    
+    // Demoblaze-specific selectors
+    this.productTitle = page.locator('h2.name');
+    this.productPrice = page.locator('h3.price-container');
+    this.productDescription = page.locator('#more-information p');
+    this.productImages = page.locator('#imgp img');
+    this.addToCartButton = page.locator('a.btn-success');
+    
+    // Demoblaze doesn't have these features, but keep for compatibility
     this.sizeSelector = page.locator('[data-testid="size-selector"]');
     this.colorSelector = page.locator('[data-testid="color-selector"]');
     this.quantityInput = page.locator('[data-testid="quantity-input"]');
-    this.addToCartButton = page.locator('[data-testid="add-to-cart-button"]');
     this.buyNowButton = page.locator('[data-testid="buy-now-button"]');
     this.wishlistButton = page.locator('[data-testid="wishlist-button"]');
     this.reviewsSection = page.locator('[data-testid="reviews-section"]');
@@ -36,35 +40,49 @@ export class ProductPage extends BasePage {
   }
 
   async goto(productId: string): Promise<void> {
-    await this.page.goto(`/products/${productId}`);
+    // For Demoblaze, we navigate to the product page directly
+    await this.page.goto(`/prod.html?idp_=${productId}`);
     await this.waitForPageLoad();
   }
 
+  /**
+   * Navigate to a Demoblaze product by clicking on it from the category page
+   */
+  async navigateToDemoblazeProduct(): Promise<void> {
+    // This method assumes we're already on a category page
+    await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
+  }
+
   async selectSize(size: string): Promise<void> {
-    await this.sizeSelector.locator(`[data-value="${size}"]`).click();
+    // Demoblaze doesn't have size selection
+    console.log('Size selection not available on Demoblaze');
   }
 
   async selectColor(color: string): Promise<void> {
-    await this.colorSelector.locator(`[data-color="${color}"]`).click();
+    // Demoblaze doesn't have color selection
+    console.log('Color selection not available on Demoblaze');
   }
 
   async setQuantity(quantity: number): Promise<void> {
-    await this.quantityInput.fill(quantity.toString());
+    // Demoblaze doesn't have quantity selection on product page
+    console.log('Quantity selection not available on Demoblaze product page');
   }
 
   async addToCart(): Promise<void> {
+    // Set up dialog handler before clicking
+    this.page.once('dialog', dialog => dialog.accept());
     await this.addToCartButton.click();
     await this.waitForLoadingToFinish();
   }
 
   async buyNow(): Promise<void> {
-    await this.buyNowButton.click();
-    await this.waitForPageLoad();
+    // Demoblaze doesn't have buy now functionality
+    console.log('Buy now not available on Demoblaze');
   }
 
   async addToWishlist(): Promise<void> {
-    await this.wishlistButton.click();
-    await this.waitForLoadingToFinish();
+    // Demoblaze doesn't have wishlist functionality
+    console.log('Wishlist not available on Demoblaze');
   }
 
   async getProductTitle(): Promise<string> {
@@ -76,15 +94,17 @@ export class ProductPage extends BasePage {
   }
 
   async getProductRating(): Promise<string> {
-    return await this.productRating.textContent() || '';
+    // Demoblaze doesn't have ratings
+    return 'N/A';
   }
 
   async scrollToReviews(): Promise<void> {
-    await this.reviewsSection.scrollIntoViewIfNeeded();
+    // Demoblaze doesn't have reviews section
+    console.log('Reviews section not available on Demoblaze');
   }
 
   async clickRelatedProduct(index: number): Promise<void> {
-    await this.relatedProducts.locator('[data-testid="product-card"]').nth(index).click();
-    await this.waitForPageLoad();
+    // Demoblaze doesn't have related products
+    console.log('Related products not available on Demoblaze');
   }
 }

@@ -1,86 +1,90 @@
 import { test, expect } from '../fixtures/testFixtures';
 
-test.describe('Smoke Tests - Critical Functionality', () => {
-  test('should load homepage successfully @smoke', async ({ homePage }) => {
-    await homePage.goto();
+test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
+  test('should load homepage successfully @smoke', async ({ page }) => {
+    await page.goto('https://www.demoblaze.com/');
     
     // Verify page loads
-    await expect(homePage.page).toHaveTitle(/Fashion|Store|Shop/);
-    await expect(homePage.searchInput).toBeVisible();
-    await expect(homePage.navigationMenu).toBeVisible();
+    await expect(page).toHaveTitle(/STORE/);
+    await expect(page.locator('text=Home')).toBeVisible();
+    await expect(page.locator('text=Phones')).toBeVisible();
+    await expect(page.locator('text=Laptops')).toBeVisible();
+    await expect(page.locator('text=Monitors')).toBeVisible();
   });
 
-  test('should search for products @smoke', async ({ 
-    homePage, 
-    testProducts 
-  }) => {
-    await homePage.goto();
+  test('should navigate to product categories @smoke', async ({ page }) => {
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
     
-    const product = testProducts.featuredProducts[0];
-    await homePage.searchForProduct(product.name);
+    // Test Phones category
+    await page.click('text=Phones');
+    await page.waitForSelector('.card-block');
+    const phoneProducts = await page.locator('.card-block').count();
+    expect(phoneProducts).toBeGreaterThan(0);
     
-    // Verify search results page loads
-    await expect(homePage.page.locator('[data-testid="search-results"]'))
-      .toBeVisible();
+    // Test Laptops category
+    await page.click('text=Laptops');
+    await page.waitForSelector('.card-block');
+    const laptopProducts = await page.locator('.card-block').count();
+    expect(laptopProducts).toBeGreaterThan(0);
   });
 
-  test('should add product to cart @smoke', async ({ 
-    productPage, 
-    testProducts 
-  }) => {
-    const product = testProducts.featuredProducts[0];
+  test('should add product to cart @smoke', async ({ page }) => {
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
     
-    await productPage.goto(product.id);
-    await productPage.addToCart();
+    // Navigate to first product
+    await page.click('text=Phones');
+    await page.waitForSelector('.card-block');
+    await page.click('.card-title a >> nth=0');
+    await page.waitForSelector('.btn.btn-success.btn-lg');
     
-    // Verify product was added to cart
-    await expect(productPage.page.locator('[data-testid="cart-icon"]'))
-      .toContainText('1');
+    // Add to cart
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('text=Add to cart');
+    await page.waitForTimeout(1000);
+    
+    // Verify product was added by checking cart
+    await page.click('#cartur');
+    await page.waitForSelector('tbody');
+    const cartItems = await page.locator('tbody tr').count();
+    expect(cartItems).toBe(1);
   });
 
-  test('should proceed to checkout @smoke', async ({ 
-    productPage, 
-    cartPage, 
-    checkoutPage, 
-    testProducts 
-  }) => {
-    const product = testProducts.featuredProducts[0];
+  test('should proceed to checkout @smoke', async ({ page }) => {
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
     
     // Add product to cart
-    await productPage.goto(product.id);
-    await productPage.addToCart();
+    await page.click('text=Phones');
+    await page.waitForSelector('.card-block');
+    await page.click('.card-title a >> nth=0');
+    await page.waitForSelector('.btn.btn-success.btn-lg');
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('text=Add to cart');
+    await page.waitForTimeout(1000);
     
     // Go to cart and proceed to checkout
-    await cartPage.goto();
-    await cartPage.proceedToCheckout();
+    await page.click('#cartur');
+    await page.waitForSelector('tbody');
+    await page.click('button.btn-success');
     
-    // Verify checkout page loads
-    await expect(checkoutPage.shippingSection).toBeVisible();
-    await expect(checkoutPage.paymentSection).toBeVisible();
+    // Verify checkout modal opens
+    await expect(page.locator('#orderModal')).toBeVisible();
   });
 
-  test('should complete user registration @smoke', async ({ 
-    homePage, 
-    testUsers 
-  }) => {
-    const timestamp = Date.now();
-    const uniqueEmail = `smoke-test-${timestamp}@example.com`;
+  test('should open user authentication modals @smoke', async ({ page }) => {
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
     
-    await homePage.goto();
-    await homePage.clickUserAccountIcon();
-    await homePage.page.locator('[data-testid="register-link"]').click();
+    // Test sign up modal - use ID selector for navigation link
+    await page.click('#signin2');
+    await expect(page.locator('#signInModal')).toBeVisible();
+    await page.click('#signInModal .close');
+    await page.waitForTimeout(500);
     
-    // Fill registration form
-    await homePage.page.locator('[data-testid="first-name-input"]').fill('Smoke');
-    await homePage.page.locator('[data-testid="last-name-input"]').fill('Test');
-    await homePage.page.locator('[data-testid="email-input"]').fill(uniqueEmail);
-    await homePage.page.locator('[data-testid="password-input"]').fill('SmokeTest123!');
-    await homePage.page.locator('[data-testid="confirm-password-input"]').fill('SmokeTest123!');
-    
-    await homePage.page.locator('[data-testid="register-button"]').click();
-    
-    // Verify registration success
-    await expect(homePage.page.locator('[data-testid="registration-success"]'))
-      .toBeVisible();
+    // Test login modal - use ID selector for navigation link
+    await page.click('#login2');
+    await expect(page.locator('#logInModal')).toBeVisible();
   });
 });

@@ -134,3 +134,19 @@ jenkins-cli.jar
 **/users/
 **/war/
 **/work/
+
+# Debug tests (temporary)
+tests/debug/*.spec.ts
+!tests/debug/README.md
+tests/debug/**/*.spec.ts
+
+# Cursor AI files
+.cursor/
+.cursorignore
+
+# Allure results and reports
+allure-results/
+allure-report/
+
+# Plan and temporary documentation files
+*.plan.md

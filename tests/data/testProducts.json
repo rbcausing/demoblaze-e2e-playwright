@@ -1,54 +1,152 @@
 {
-  "featuredProducts": [
+  "phones": [
     {
-      "id": "prod-001",
-      "name": "Classic White T-Shirt",
-      "price": "$19.99",
-      "category": "Tops",
-      "sizes": ["S", "M", "L", "XL"],
-      "colors": ["White", "Black", "Navy"],
-      "rating": 4.5,
+      "id": "1",
+      "name": "Samsung galaxy s6",
+      "price": 360,
+      "category": "Phones",
+      "description": "The Samsung Galaxy S6 is powered by 1.5GHz octa-core Samsung Exynos 7420",
       "inStock": true
     },
     {
-      "id": "prod-002",
-      "name": "Denim Jeans",
-      "price": "$59.99",
-      "category": "Bottoms",
-      "sizes": ["28", "30", "32", "34", "36"],
-      "colors": ["Blue", "Black"],
-      "rating": 4.2,
+      "id": "2", 
+      "name": "Nokia lumia 1520",
+      "price": 820,
+      "category": "Phones",
+      "description": "The Nokia Lumia 1520 is powered by 2.2GHz quad-core Qualcomm Snapdragon 800",
       "inStock": true
     },
     {
-      "id": "prod-003",
-      "name": "Running Sneakers",
-      "price": "$89.99",
-      "category": "Shoes",
-      "sizes": ["7", "8", "9", "10", "11"],
-      "colors": ["White", "Black", "Red"],
-      "rating": 4.8,
+      "id": "3",
+      "name": "Nexus 6",
+      "price": 650,
+      "category": "Phones",
+      "description": "The Motorola Google Nexus 6 is powered by 2.7GHz quad-core Qualcomm Snapdragon 805",
+      "inStock": true
+    },
+    {
+      "id": "4",
+      "name": "Samsung galaxy s7",
+      "price": 800,
+      "category": "Phones",
+      "description": "The Samsung Galaxy S7 is powered by 1.6GHz octa-core Samsung Exynos 8890",
+      "inStock": true
+    },
+    {
+      "id": "5",
+      "name": "Iphone 6 32gb",
+      "price": 790,
+      "category": "Phones",
+      "description": "The iPhone 6 is powered by Apple A8 chip with 64-bit architecture",
+      "inStock": true
+    },
+    {
+      "id": "6",
+      "name": "Sony xperia z5",
+      "price": 320,
+      "category": "Phones",
+      "description": "The Sony Xperia Z5 is powered by 1.5GHz octa-core Qualcomm Snapdragon 810",
+      "inStock": true
+    },
+    {
+      "id": "7",
+      "name": "HTC One M9",
+      "price": 700,
+      "category": "Phones",
+      "description": "The HTC One M9 is powered by 1.5GHz octa-core Qualcomm Snapdragon 810",
       "inStock": true
     }
   ],
-  "outOfStockProduct": {
-    "id": "prod-004",
-    "name": "Limited Edition Hoodie",
-    "price": "$79.99",
-    "category": "Tops",
-    "sizes": ["S", "M", "L"],
-    "colors": ["Gray"],
-    "rating": 4.7,
-    "inStock": false
-  },
-  "expensiveProduct": {
-    "id": "prod-005",
-    "name": "Designer Jacket",
-    "price": "$299.99",
-    "category": "Outerwear",
-    "sizes": ["S", "M", "L", "XL"],
-    "colors": ["Black", "Brown"],
-    "rating": 4.9,
-    "inStock": true
+  "laptops": [
+    {
+      "id": "8",
+      "name": "Sony vaio i5",
+      "price": 790,
+      "category": "Laptops",
+      "description": "Sony VAIO VGN-CS190 14.1-Inch Laptop with Intel Core 2 Duo T8100",
+      "inStock": true
+    },
+    {
+      "id": "9",
+      "name": "Sony vaio i7",
+      "price": 790,
+      "category": "Laptops",
+      "description": "Sony VAIO VPC-EB17FX/L 15.5-Inch Laptop with Intel Core i7",
+      "isLuxury": true,
+      "inStock": true
+    },
+    {
+      "id": "10",
+      "name": "MacBook air",
+      "price": 700,
+      "category": "Laptops",
+      "description": "13.3-inch MacBook Air with Apple M1 chip",
+      "inStock": true
+    },
+    {
+      "id": "11",
+      "name": "Dell i7 8gb",
+      "price": 700,
+      "category": "Laptops",
+      "description": "Dell Inspiron i7-8550U 8GB RAM 256GB SSD",
+      "inStock": true
+    },
+    {
+      "id": "12",
+      "name": "2017 Dell 15.6 Inch",
+      "price": 700,
+      "category": "Laptops",
+      "description": "2017 Dell 15.6 Inch HD Touchscreen Flagship",
+      "inStock": true
+    },
+    {
+      "id": "13",
+      "name": "MacBook Pro",
+      "price": 1100,
+      "category": "Laptops",
+      "description": "MacBook Pro 13.3 Inch Laptop with Retina Display",
+      "isLuxury": true,
+      "inStock": true
+    }
+  ],
+  "monitors": [
+    {
+      "id": "14",
+      "name": "Apple monitor 24",
+      "price": 400,
+      "category": "Monitors",
+      "description": "24 inch LED Cinema Display with built-in camera",
+      "inStock": true
+    },
+    {
+      "id": "15",
+      "name": "ASUS Full HD",
+      "price": 230,
+      "category": "Monitors",
+      "description": "ASUS Full HD 1920x1080 IPS HDMI VGA Eye Care Monitor",
+      "inStock": true
+    }
+  ],
+  "testScenarios": {
+    "cheapProduct": {
+      "name": "ASUS Full HD",
+      "price": 230,
+      "category": "Monitors"
+    },
+    "midRangeProduct": {
+      "name": "Samsung galaxy s6",
+      "price": 360,
+      "category": "Phones"
+    },
+    "expensiveProduct": {
+      "name": "Nokia lumia 1520",
+      "price": 820,
+      "category": "Phones"
+    },
+    "luxuryProduct": {
+      "name": "MacBook Pro",
+      "price": 1100,
+      "category": "Laptops"
+    }
   }
 }

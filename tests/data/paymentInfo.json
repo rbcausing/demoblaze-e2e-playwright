@@ -1,23 +1,42 @@
 {
-  "validCard": {
-    "cardNumber": "4111111111111111",
-    "expiryMonth": "12",
-    "expiryYear": "2025",
-    "cvv": "123",
-    "cardholderName": "John Doe"
+  "validPayment": {
+    "name": "John Doe",
+    "country": "United States",
+    "city": "New York",
+    "card": "4111111111111111",
+    "month": "12",
+    "year": "2025"
   },
-  "expiredCard": {
-    "cardNumber": "4111111111111111",
-    "expiryMonth": "01",
-    "expiryYear": "2020",
-    "cvv": "123",
-    "cardholderName": "John Doe"
+  "internationalPayment": {
+    "name": "Jane Smith",
+    "country": "Canada",
+    "city": "Toronto",
+    "card": "5555555555554444",
+    "month": "06",
+    "year": "2026"
   },
-  "invalidCard": {
-    "cardNumber": "1234567890123456",
-    "expiryMonth": "12",
-    "expiryYear": "2025",
-    "cvv": "999",
-    "cardholderName": "John Doe"
+  "europePayment": {
+    "name": "Hans Mueller",
+    "country": "Germany",
+    "city": "Berlin",
+    "card": "378282246310005",
+    "month": "03",
+    "year": "2027"
+  },
+  "invalidPayment": {
+    "name": "",
+    "country": "",
+    "city": "",
+    "card": "",
+    "month": "",
+    "year": ""
+  },
+  "partialPayment": {
+    "name": "Test User",
+    "country": "USA",
+    "city": "Los Angeles",
+    "card": "",
+    "month": "",
+    "year": ""
   }
 }

@@ -19,8 +19,8 @@ This project is a comprehensive end-to-end testing framework for e-commerce appl
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/yourusername/fashion-e2e-playwright.git
-   cd fashion-e2e-playwright
+   git clone https://github.com/yourusername/demoblaze-e2e-playwright.git
+   cd demoblaze-e2e-playwright
    ```
 
 2. **Install Dependencies**

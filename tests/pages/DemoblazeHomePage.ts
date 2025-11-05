@@ -1,5 +1,17 @@
 import { Page, Locator } from '@playwright/test';
 
+/**
+ * Page Object Model for Demoblaze.com Homepage
+ * Handles navigation, product browsing, and category selection
+ * 
+ * @example
+ * ```typescript
+ * const homePage = new DemoblazeHomePage(page);
+ * await homePage.navigate();
+ * await homePage.selectCategory('Laptops');
+ * await homePage.addLuxuryLaptopToCart();
+ * ```
+ */
 export class DemoblazeHomePage {
   constructor(private page: Page) {}
 
@@ -22,81 +34,89 @@ export class DemoblazeHomePage {
   readonly productPrices = this.page.locator('h5');
   readonly addToCartButton = this.page.locator('text=Add to cart');
 
+  /**
+   * Navigate to Demoblaze homepage and wait for page load
+   * @throws {Error} If navigation fails or timeout is reached
+   */
   async navigate(): Promise<void> {
-    console.log('Navigating to Demoblaze...');
-    
     try {
-      // Use the same approach that worked in simple-test.spec.ts
       await this.page.goto('https://www.demoblaze.com/', { 
-        waitUntil: 'domcontentloaded', // Changed from 'networkidle'
-        timeout: 30000 // Reduced timeout
+        waitUntil: 'domcontentloaded',
+        timeout: 30000
       });
       
       // Wait for key elements to be visible
       await this.page.waitForSelector('text=Home', { timeout: 10000 });
-      console.log('Navigation successful!');
-      
     } catch (error) {
-      console.error('Navigation failed:', error);
-      throw error;
+      throw new Error(`Navigation to Demoblaze failed: ${error}`);
     }
   }
 
+  /**
+   * Select a product category from the navigation menu
+   * @param category - Category name: 'Laptops', 'Phones', or 'Monitors'
+   */
   async selectCategory(category: string): Promise<void> {
     if (category.toLowerCase() === 'laptops') {
-      // Use the exact onclick method we found
       await this.page.click('a[onclick="byCat(\'notebook\')"]');
     } else {
       await this.page.click(`text=${category}`);
     }
-    // Wait for the correct product container
     await this.page.waitForSelector('.card-block');
   }
 
+  /**
+   * Convenience method to navigate directly to Laptops category
+   */
   async selectLaptopsCategory(): Promise<void> {
     await this.selectCategory('Laptops');
   }
 
+  /**
+   * Add the first product in the current category to cart
+   * Handles JavaScript dialog confirmation
+   */
   async addFirstProductToCart(): Promise<void> {
     await this.page.click('.card-title a >> nth=0');
-    
-    // Replace the problematic wait with the working approach
     await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
     
     // Set up dialog handler before clicking
     this.page.once('dialog', async dialog => {
-      console.log(`Dialog message: ${dialog.message()}`);
       await dialog.accept();
     });
     
     await this.page.click('text=Add to cart');
-    // Small wait to ensure dialog is handled
     await this.page.waitForTimeout(1000);
   }
 
+  /**
+   * Intelligent algorithm to find and add the most expensive (luxury) item to cart
+   * Parses all product prices and identifies the highest-priced item
+   * 
+   * @throws {Error} If no valid product prices are found
+   * 
+   * @example
+   * ```typescript
+   * await homePage.selectLaptopsCategory();
+   * await homePage.findLuxuryItem(); // Automatically adds MacBook Pro ($1100)
+   * ```
+   */
   async findLuxuryItem(): Promise<void> {
-    console.log('Finding luxury item...');
-    
-    // Wait for products to load
     await this.page.waitForSelector('.card-block', { timeout: 10000 });
     
-    // Get all product cards using the correct selector
     const productCards = await this.page.locator('.card-block').all();
-    console.log(`Found ${productCards.length} product cards`);
     
     let maxPrice = 0;
     let luxuryCardIndex = 0;
     const validPrices = [];
     
-    // Find the most expensive item by iterating through actual product cards
+    // Parse prices and find the most expensive item
     for (let i = 0; i < productCards.length; i++) {
       try {
-        // Use the exact selector from your HTML: .card-block h5
         const priceElement = await productCards[i].locator('h5').textContent();
         if (priceElement && priceElement.startsWith('$')) {
           const price = parseFloat(priceElement.replace('$', ''));
           validPrices.push(price);
-          console.log(`Card ${i}: $${price}`);
           
           if (price > maxPrice) {
             maxPrice = price;
@@ -104,85 +124,74 @@ export class DemoblazeHomePage {
           }
         }
       } catch (error) {
-        console.log(`Card ${i}: No valid price found`);
+        // Skip products without valid prices
+        continue;
       }
     }
-    
-    console.log(`Valid prices found: ${validPrices.length}`);
-    console.log(`Luxury item found: Card ${luxuryCardIndex} at $${maxPrice}`);
     
     if (validPrices.length === 0) {
       throw new Error('No valid product prices found');
     }
     
-    // WebKit-specific fix: Add more robust clicking
-    try {
-      const luxuryCard = productCards[luxuryCardIndex];
-      
-      // Wait for the element to be visible and stable
-      await luxuryCard.locator('.card-title a.hrefch').waitFor({ 
-        state: 'visible', 
-        timeout: 10000 
-      });
-      
-      // Scroll into view for WebKit
-      await luxuryCard.locator('.card-title a.hrefch').scrollIntoViewIfNeeded();
-      
-      // Add a small wait for WebKit stability
-      await this.page.waitForTimeout(1000);
-      
-      // Click with force for WebKit
-      await luxuryCard.locator('.card-title a.hrefch').click({ force: true });
-      
-    } catch (error) {
-      console.error('WebKit click failed, trying alternative approach:', error);
-      // Fallback: use page.click with selector
-      const luxuryCardSelector = `.card-block:nth-child(${luxuryCardIndex + 1}) .card-title a.hrefch`;
-      await this.page.click(luxuryCardSelector, { force: true });
-    }
-    
-    // Replace the problematic wait with a more reliable one
+    const luxuryCard = productCards[luxuryCardIndex];
+    await luxuryCard.locator('a').first().click();
     await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
-    console.log('Product page loaded!');
     
-    // Set up dialog handler before clicking - use the exact button selector
+    // Handle add to cart dialog
     this.page.once('dialog', dialog => dialog.accept());
-    await this.page.click('.btn.btn-success.btn-lg'); // Exact selector from your HTML
+    await this.page.click('.btn.btn-success.btn-lg');
     await this.page.waitForTimeout(1000);
-    
-    console.log('Luxury item added to cart!');
   }
 
+  /**
+   * Convenience method: Navigate to Laptops and add the most expensive laptop
+   * Combines selectLaptopsCategory() and findLuxuryItem()
+   */
   async addLuxuryLaptopToCart(): Promise<void> {
     await this.selectLaptopsCategory();
     await this.findLuxuryItem();
   }
 
+  /**
+   * Navigate to the shopping cart page
+   */
   async clickCart(): Promise<void> {
     await this.cartLink.click();
     await this.page.waitForLoadState('networkidle');
   }
 
+  /**
+   * Get the total number of products displayed on the current page
+   * @returns Number of product cards
+   */
   async getProductCount(): Promise<number> {
     return await this.productCards.count();
   }
 
+  /**
+   * Get all product titles from the current page
+   * @returns Array of product title strings
+   */
   async getProductTitles(): Promise<string[]> {
     return await this.productTitles.allTextContents();
   }
 
+  /**
+   * Get all product prices from the current page
+   * @returns Array of price strings (e.g., ["$360", "$820"])
+   */
   async getProductPrices(): Promise<string[]> {
     return await this.productPrices.allTextContents();
   }
 
+  /**
+   * Add a specific product to cart by its index position
+   * @param index - Zero-based index of the product (0 = first product)
+   */
   async addProductToCartByIndex(index: number): Promise<void> {
     await this.productTitles.nth(index).click();
-    
-    // Replace the problematic wait with a more reliable one
     await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
-    console.log('Product page loaded!');
     
-    // Set up dialog handler before clicking
     this.page.once('dialog', dialog => dialog.accept());
     await this.page.click('text=Add to cart');
     await this.page.waitForTimeout(1000);

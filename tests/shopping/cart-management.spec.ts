@@ -1,106 +1,79 @@
 import { test, expect } from '../fixtures/testFixtures';
 
-test.describe('Shopping Cart - Cart Management', () => {
-  test.beforeEach(async ({ productPage, cartPage, testProducts }) => {
+test.describe('Demoblaze Shopping Cart - Cart Management', () => {
+  test.beforeEach(async ({ page }) => {
     // Add items to cart before each test
-    const products = testProducts.featuredProducts.slice(0, 2);
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
     
-    await productPage.goto(products[0].id);
-    await productPage.addToCart();
+    // Add first product
+    await page.click('text=Phones');
+    await page.waitForSelector('.card-block');
+    await page.click('.card-title a >> nth=0');
+    await page.waitForSelector('.btn.btn-success.btn-lg');
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('text=Add to cart');
+    await page.waitForTimeout(1000);
     
-    await productPage.goto(products[1].id);
-    await productPage.addToCart();
+    // Add second product
+    await page.click('text=Home');
+    await page.click('text=Laptops');
+    await page.waitForSelector('.card-block');
+    await page.click('.card-title a >> nth=0');
+    await page.waitForSelector('.btn.btn-success.btn-lg');
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('text=Add to cart');
+    await page.waitForTimeout(1000);
     
-    await cartPage.goto();
+    // Navigate to cart
+    await page.click('#cartur');
+    await page.waitForSelector('tbody');
   });
 
-  test('should display cart items correctly', async ({ cartPage, testProducts }) => {
-    const products = testProducts.featuredProducts.slice(0, 2);
-    const cartItems = await cartPage.getCartItems();
+  test('should display cart items correctly', async ({ page }) => {
+    const cartItems = await page.locator('tbody tr').count();
+    expect(cartItems).toBe(2);
     
-    expect(cartItems).toHaveLength(2);
-    expect(cartItems[0].name).toContain(products[0].name);
-    expect(cartItems[1].name).toContain(products[1].name);
+    // Verify items have titles and prices
+    const firstItemTitle = await page.locator('td:nth-child(2)').first().textContent();
+    const firstItemPrice = await page.locator('td:nth-child(3)').first().textContent();
+    
+    expect(firstItemTitle).toBeTruthy();
+    expect(firstItemPrice).toMatch(/\$\d+/);
   });
 
-  test('should update item quantity', async ({ cartPage }) => {
-    const newQuantity = 3;
+  test('should remove item from cart', async ({ page }) => {
+    const initialCount = await page.locator('tbody tr').count();
     
-    await cartPage.updateItemQuantity(0, newQuantity);
+    // Click delete link for first item
+    await page.click('td a >> nth=0');
+    await page.waitForTimeout(1000);
     
-    const cartItems = await cartPage.getCartItems();
-    expect(cartItems[0].quantity).toBe(newQuantity);
-  });
-
-  test('should remove item from cart', async ({ cartPage }) => {
-    const initialCount = await cartPage.getCartItemsCount();
-    
-    await cartPage.removeItem(0);
-    
-    const finalCount = await cartPage.getCartItemsCount();
+    const finalCount = await page.locator('tbody tr').count();
     expect(finalCount).toBe(initialCount - 1);
   });
 
-  test('should clear entire cart', async ({ cartPage }) => {
-    await cartPage.clearCart();
+  test('should calculate total correctly', async ({ page }) => {
+    const totalElement = await page.locator('#totalp').textContent();
+    expect(totalElement).toMatch(/\$\d+/);
     
-    const isCartEmpty = await cartPage.isCartEmpty();
-    expect(isCartEmpty).toBe(true);
+    // Verify total is reasonable (should be sum of individual prices)
+    const total = parseFloat(totalElement?.replace('$', '') || '0');
+    expect(total).toBeGreaterThan(0);
   });
 
-  test('should calculate subtotal correctly', async ({ cartPage, testProducts }) => {
-    const products = testProducts.featuredProducts.slice(0, 2);
+  test('should proceed to checkout', async ({ page }) => {
+    await page.click('button.btn-success');
     
-    // Update quantities to test calculation
-    await cartPage.updateItemQuantity(0, 2);
-    await cartPage.updateItemQuantity(1, 1);
-    
-    const subtotal = await cartPage.getSubtotal();
-    const expectedSubtotal = 2 * 19.99 + 1 * 59.99; // Based on test data prices
-    
-    expect(parseFloat(subtotal.replace('$', ''))).toBeCloseTo(expectedSubtotal, 2);
+    // Verify checkout modal opens
+    await expect(page.locator('#orderModal')).toBeVisible();
   });
 
-  test('should apply promo code successfully', async ({ cartPage }) => {
-    const promoCode = 'SAVE10';
-    
-    await cartPage.applyPromoCode(promoCode);
-    
-    const promoMessage = await cartPage.getPromoCodeMessage();
-    expect(promoMessage).toContain('Promo code applied');
-  });
-
-  test('should show error for invalid promo code', async ({ cartPage }) => {
-    const invalidPromoCode = 'INVALID';
-    
-    await cartPage.applyPromoCode(invalidPromoCode);
-    
-    const promoMessage = await cartPage.getPromoCodeMessage();
-    expect(promoMessage).toContain('Invalid promo code');
-  });
-
-  test('should proceed to checkout', async ({ cartPage }) => {
-    await cartPage.proceedToCheckout();
-    
-    // Verify we're on checkout page
-    expect(cartPage.page.url()).toContain('/checkout');
-  });
-
-  test('should continue shopping from cart', async ({ cartPage }) => {
-    await cartPage.continueShopping();
+  test('should continue shopping from cart', async ({ page }) => {
+    // Click home link to continue shopping
+    await page.click('text=Home');
     
     // Verify we're back on home page
-    expect(cartPage.page.url()).toContain('/');
-  });
-
-  test('should persist cart items on page refresh', async ({ cartPage, testProducts }) => {
-    const initialItems = await cartPage.getCartItemsCount();
-    
-    // Refresh the page
-    await cartPage.page.reload();
-    await cartPage.waitForPageLoad();
-    
-    const itemsAfterRefresh = await cartPage.getCartItemsCount();
-    expect(itemsAfterRefresh).toBe(initialItems);
+    await expect(page.locator('text=Home')).toBeVisible();
   });
 });

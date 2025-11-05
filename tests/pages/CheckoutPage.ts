@@ -44,8 +44,32 @@ export class CheckoutPage extends BasePage {
   readonly shippingCost: Locator;
   readonly taxAmount: Locator;
 
+  // Demoblaze-specific selectors
+  readonly orderModal: Locator;
+  readonly nameInput: Locator;
+  readonly countryInput: Locator;
+  readonly cityInputDemoblaze: Locator;
+  readonly cardInput: Locator;
+  readonly monthInput: Locator;
+  readonly yearInput: Locator;
+  readonly purchaseButton: Locator;
+  readonly confirmationModal: Locator;
+
   constructor(page: Page) {
     super(page);
+    
+    // Demoblaze-specific selectors
+    this.orderModal = page.locator('#orderModal');
+    this.nameInput = page.locator('#name');
+    this.countryInput = page.locator('#country');
+    this.cityInputDemoblaze = page.locator('#city');
+    this.cardInput = page.locator('#card');
+    this.monthInput = page.locator('#month');
+    this.yearInput = page.locator('#year');
+    this.purchaseButton = page.locator('button[onclick="purchaseOrder()"]');
+    this.confirmationModal = page.locator('.sweet-alert');
+    
+    // Keep generic selectors for backward compatibility
     this.shippingSection = page.locator('[data-testid="shipping-section"]');
     this.billingSection = page.locator('[data-testid="billing-section"]');
     this.paymentSection = page.locator('[data-testid="payment-section"]');
@@ -75,62 +99,111 @@ export class CheckoutPage extends BasePage {
     await this.waitForPageLoad();
   }
 
+  /**
+   * Fill Demoblaze order form
+   */
+  async fillDemoblazeOrderForm(orderData: {
+    name: string;
+    country: string;
+    city: string;
+    creditCard: string;
+    month: string;
+    year: string;
+  }): Promise<void> {
+    await this.nameInput.fill(orderData.name);
+    await this.countryInput.fill(orderData.country);
+    await this.cityInputDemoblaze.fill(orderData.city);
+    await this.cardInput.fill(orderData.creditCard);
+    await this.monthInput.fill(orderData.month);
+    await this.yearInput.fill(orderData.year);
+  }
+
   async fillShippingAddress(address: ShippingAddress): Promise<void> {
-    await this.firstNameInput.fill(address.firstName);
-    await this.lastNameInput.fill(address.lastName);
-    await this.addressInput.fill(address.address);
-    await this.cityInput.fill(address.city);
-    await this.stateSelect.selectOption(address.state);
-    await this.zipCodeInput.fill(address.zipCode);
-    await this.countrySelect.selectOption(address.country);
-    if (address.phone) {
-      await this.phoneInput.fill(address.phone);
-    }
+    // For Demoblaze, we combine first and last name
+    await this.nameInput.fill(`${address.firstName} ${address.lastName}`);
+    await this.countryInput.fill(address.country);
+    await this.cityInputDemoblaze.fill(address.city);
   }
 
   async fillPaymentInfo(payment: PaymentInfo): Promise<void> {
-    await this.cardNumberInput.fill(payment.cardNumber);
-    await this.expiryMonthSelect.selectOption(payment.expiryMonth);
-    await this.expiryYearSelect.selectOption(payment.expiryYear);
-    await this.cvvInput.fill(payment.cvv);
-    await this.cardholderNameInput.fill(payment.cardholderName);
+    await this.cardInput.fill(payment.cardNumber);
+    await this.monthInput.fill(payment.expiryMonth);
+    await this.yearInput.fill(payment.expiryYear);
   }
 
   async useSameAsBillingAddress(): Promise<void> {
-    await this.sameAsBillingCheckbox.check();
+    // Demoblaze doesn't have separate billing address
+    console.log('Same as billing not applicable on Demoblaze');
   }
 
   async placeOrder(): Promise<void> {
-    await this.placeOrderButton.click();
+    await this.purchaseButton.click();
     await this.waitForPageLoad();
   }
 
   async getOrderTotal(): Promise<string> {
-    return await this.orderTotal.textContent() || '';
+    // Demoblaze shows total in confirmation modal
+    const details = await this.getOrderDetails();
+    const amountMatch = details.match(/Amount:\s*(\d+)/);
+    return amountMatch ? `$${amountMatch[1]}` : '';
   }
 
   async getShippingCost(): Promise<string> {
-    return await this.shippingCost.textContent() || '';
+    // Demoblaze doesn't show separate shipping cost
+    return '$0.00';
   }
 
   async getTaxAmount(): Promise<string> {
-    return await this.taxAmount.textContent() || '';
+    // Demoblaze doesn't show separate tax amount
+    return '$0.00';
   }
 
   async scrollToPaymentSection(): Promise<void> {
-    await this.paymentSection.scrollIntoViewIfNeeded();
+    // Demoblaze has a modal, so scrolling isn't needed
+    console.log('Scrolling not needed for Demoblaze modal');
   }
 
   async isFormValid(): Promise<boolean> {
     // Check if all required fields are filled
-    const firstName = await this.firstNameInput.inputValue();
-    const lastName = await this.lastNameInput.inputValue();
-    const address = await this.addressInput.inputValue();
-    const city = await this.cityInput.inputValue();
-    const zipCode = await this.zipCodeInput.inputValue();
-    const cardNumber = await this.cardNumberInput.inputValue();
-    const cvv = await this.cvvInput.inputValue();
+    const name = await this.nameInput.inputValue();
+    const country = await this.countryInput.inputValue();
+    const city = await this.cityInputDemoblaze.inputValue();
+    const card = await this.cardInput.inputValue();
+    const month = await this.monthInput.inputValue();
+    const year = await this.yearInput.inputValue();
     
-    return !!(firstName && lastName && address && city && zipCode && cardNumber && cvv);
+    return !!(name && country && city && card && month && year);
+  }
+
+  /**
+   * Get order confirmation details from Demoblaze
+   */
+  async getOrderDetails(): Promise<string> {
+    return await this.page.locator('.sweet-alert .lead').textContent() || '';
+  }
+
+  /**
+   * Get order ID from confirmation
+   */
+  async getOrderId(): Promise<string> {
+    const details = await this.getOrderDetails();
+    const idMatch = details.match(/Id:\s*(\d+)/);
+    return idMatch ? idMatch[1] : '';
+  }
+
+  /**
+   * Get order amount from confirmation
+   */
+  async getOrderAmount(): Promise<string> {
+    const details = await this.getOrderDetails();
+    const amountMatch = details.match(/Amount:\s*(\d+)/);
+    return amountMatch ? amountMatch[1] : '';
+  }
+
+  /**
+   * Click OK on confirmation modal
+   */
+  async clickOk(): Promise<void> {
+    await this.page.click('.confirm.btn.btn-lg.btn-primary');
   }
 }

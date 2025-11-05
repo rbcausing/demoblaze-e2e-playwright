@@ -91,7 +91,7 @@ Install the following plugins in Jenkins:
 1. **General Settings**
    - ✅ Discard old builds
    - ✅ GitHub project (optional)
-   - Project url: `https://github.com/rbcausing/fashion-e2e-playwright`
+   - Project url: `https://github.com/rbcausing/demoblaze-e2e-playwright`
 
 2. **Build Triggers**
    - ✅ GitHub hook trigger for GITScm polling
@@ -100,7 +100,7 @@ Install the following plugins in Jenkins:
 3. **Pipeline Configuration**
    - **Definition**: Pipeline script from SCM
    - **SCM**: Git
-   - **Repository URL**: `https://github.com/rbcausing/fashion-e2e-playwright.git`
+   - **Repository URL**: `https://github.com/rbcausing/demoblaze-e2e-playwright.git`
    - **Branch**: `*/main` or `*/master`
    - **Script Path**: `Jenkinsfile`
 

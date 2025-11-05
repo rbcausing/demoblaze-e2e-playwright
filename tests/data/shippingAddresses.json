@@ -1,32 +1,32 @@
 {
-  "validAddress": {
-    "firstName": "John",
-    "lastName": "Doe",
-    "address": "123 Main Street",
-    "city": "New York",
-    "state": "NY",
-    "zipCode": "10001",
-    "country": "US",
-    "phone": "+1234567890"
+  "domesticAddress": {
+    "name": "John Doe",
+    "country": "United States",
+    "city": "New York"
   },
   "internationalAddress": {
-    "firstName": "Jane",
-    "lastName": "Smith",
-    "address": "456 Oak Avenue",
-    "city": "Toronto",
-    "state": "ON",
-    "zipCode": "M5H 2N2",
-    "country": "CA",
-    "phone": "+14165551234"
+    "name": "Jane Smith",
+    "country": "Canada",
+    "city": "Toronto"
+  },
+  "europeAddress": {
+    "name": "Pierre Dubois",
+    "country": "France",
+    "city": "Paris"
+  },
+  "asiaAddress": {
+    "name": "Yuki Tanaka",
+    "country": "Japan",
+    "city": "Tokyo"
   },
   "invalidAddress": {
-    "firstName": "",
-    "lastName": "Test",
-    "address": "",
-    "city": "",
-    "state": "",
-    "zipCode": "",
+    "name": "",
     "country": "",
-    "phone": ""
+    "city": ""
+  },
+  "longNameAddress": {
+    "name": "Christopher Alexander Montgomery-Wellington III",
+    "country": "United Kingdom",
+    "city": "London"
   }
 }

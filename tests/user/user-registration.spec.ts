@@ -1,152 +1,191 @@
 import { test, expect } from '../fixtures/testFixtures';
 
-test.describe('User Registration', () => {
-  test('should register new user successfully @smoke', async ({ 
-    homePage, 
-    testUsers 
-  }) => {
-    const newUser = testUsers.newUser;
+test.describe('Demoblaze User Authentication', () => {
+  test('should open sign up modal @smoke', async ({ page }) => {
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
     
-    await homePage.goto();
-    await homePage.clickUserAccountIcon();
+    // Click sign up link
+    await page.click('text=Sign up');
     
-    // Navigate to registration page
-    await homePage.page.locator('[data-testid="register-link"]').click();
+    // Verify sign up modal opens
+    await expect(page.locator('#signInModal')).toBeVisible();
+    await expect(page.locator('#signInModal >> text=Sign up')).toBeVisible();
+  });
+
+  test('should open login modal', async ({ page }) => {
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
+    
+    // Click log in link
+    await page.click('text=Log in');
+    
+    // Verify login modal opens
+    await expect(page.locator('#logInModal')).toBeVisible();
+    await expect(page.locator('#logInModal >> text=Log in')).toBeVisible();
+  });
+
+  test('should register new user successfully', async ({ page, testUsers }) => {
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const uniquePassword = 'testpass123';
+    
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
+    
+    // Open sign up modal
+    await page.click('text=Sign up');
+    await page.waitForSelector('#signInModal');
     
     // Fill registration form
-    await homePage.page.locator('[data-testid="first-name-input"]').fill(newUser.firstName);
-    await homePage.page.locator('[data-testid="last-name-input"]').fill(newUser.lastName);
-    await homePage.page.locator('[data-testid="email-input"]').fill(newUser.email);
-    await homePage.page.locator('[data-testid="password-input"]').fill(newUser.password);
-    await homePage.page.locator('[data-testid="confirm-password-input"]').fill(newUser.password);
-    await homePage.page.locator('[data-testid="phone-input"]').fill(newUser.phone);
+    await page.fill('#sign-username', uniqueUsername);
+    await page.fill('#sign-password', uniquePassword);
     
     // Submit registration
-    await homePage.page.locator('[data-testid="register-button"]').click();
+    page.once('dialog', dialog => {
+      expect(dialog.message()).toContain('Sign up successful');
+      dialog.accept();
+    });
     
-    // Verify successful registration
-    await expect(homePage.page.locator('[data-testid="registration-success"]'))
-      .toContainText('Registration successful');
-    
-    // Verify user is logged in
-    await expect(homePage.page.locator('[data-testid="user-menu"]'))
-      .toContainText(newUser.firstName);
+    await page.click('button[onclick="register()"]');
+    await page.waitForTimeout(2000); // Wait for dialog to appear and be handled
   });
 
-  test('should show validation errors for invalid input', async ({ homePage }) => {
-    await homePage.goto();
-    await homePage.clickUserAccountIcon();
-    await homePage.page.locator('[data-testid="register-link"]').click();
-    
-    // Try to submit empty form
-    await homePage.page.locator('[data-testid="register-button"]').click();
-    
-    // Verify validation messages
-    await expect(homePage.page.locator('[data-testid="first-name-error"]'))
-      .toContainText('First name is required');
-    await expect(homePage.page.locator('[data-testid="email-error"]'))
-      .toContainText('Email is required');
-    await expect(homePage.page.locator('[data-testid="password-error"]'))
-      .toContainText('Password is required');
-  });
-
-  test('should prevent duplicate email registration', async ({ 
-    homePage, 
-    testUsers 
-  }) => {
-    const existingUser = testUsers.validUser;
-    
-    await homePage.goto();
-    await homePage.clickUserAccountIcon();
-    await homePage.page.locator('[data-testid="register-link"]').click();
-    
-    // Try to register with existing email
-    await homePage.page.locator('[data-testid="first-name-input"]').fill('New');
-    await homePage.page.locator('[data-testid="last-name-input"]').fill('User');
-    await homePage.page.locator('[data-testid="email-input"]').fill(existingUser.email);
-    await homePage.page.locator('[data-testid="password-input"]').fill('NewPassword123!');
-    await homePage.page.locator('[data-testid="confirm-password-input"]').fill('NewPassword123!');
-    
-    await homePage.page.locator('[data-testid="register-button"]').click();
-    
-    // Verify error message
-    await expect(homePage.page.locator('[data-testid="registration-error"]'))
-      .toContainText('Email already exists');
-  });
-
-  test('should validate password strength', async ({ homePage }) => {
-    await homePage.goto();
-    await homePage.clickUserAccountIcon();
-    await homePage.page.locator('[data-testid="register-link"]').click();
-    
-    // Enter weak password
-    await homePage.page.locator('[data-testid="password-input"]').fill('weak');
-    
-    // Verify password strength indicator
-    await expect(homePage.page.locator('[data-testid="password-strength"]'))
-      .toContainText('Weak');
-    
-    // Enter strong password
-    await homePage.page.locator('[data-testid="password-input"]').fill('StrongPassword123!');
-    
-    // Verify password strength indicator
-    await expect(homePage.page.locator('[data-testid="password-strength"]'))
-      .toContainText('Strong');
-  });
-
-  test('should validate password confirmation match', async ({ homePage }) => {
-    await homePage.goto();
-    await homePage.clickUserAccountIcon();
-    await homePage.page.locator('[data-testid="register-link"]').click();
-    
-    // Enter different passwords
-    await homePage.page.locator('[data-testid="password-input"]').fill('Password123!');
-    await homePage.page.locator('[data-testid="confirm-password-input"]').fill('DifferentPassword123!');
-    
-    await homePage.page.locator('[data-testid="register-button"]').click();
-    
-    // Verify password mismatch error
-    await expect(homePage.page.locator('[data-testid="confirm-password-error"]'))
-      .toContainText('Passwords do not match');
-  });
-
-  test('should validate email format', async ({ homePage }) => {
-    await homePage.goto();
-    await homePage.clickUserAccountIcon();
-    await homePage.page.locator('[data-testid="register-link"]').click();
-    
-    // Enter invalid email format
-    await homePage.page.locator('[data-testid="email-input"]').fill('invalid-email');
-    
-    await homePage.page.locator('[data-testid="register-button"]').click();
-    
-    // Verify email format error
-    await expect(homePage.page.locator('[data-testid="email-error"]'))
-      .toContainText('Please enter a valid email address');
-  });
-
-  test('should redirect to login after successful registration', async ({ 
-    homePage, 
-    testUsers 
-  }) => {
-    const newUser = testUsers.newUser;
+  test('should login with valid credentials', async ({ page }) => {
+    // First register a user
     const timestamp = Date.now();
-    const uniqueEmail = `user-${timestamp}@example.com`;
+    const username = `testuser${timestamp}`;
+    const password = 'testpass123';
     
-    await homePage.goto();
-    await homePage.clickUserAccountIcon();
-    await homePage.page.locator('[data-testid="register-link"]').click();
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
     
-    // Fill and submit registration form
-    await homePage.page.locator('[data-testid="first-name-input"]').fill(newUser.firstName);
-    await homePage.page.locator('[data-testid="last-name-input"]').fill(newUser.lastName);
-    await homePage.page.locator('[data-testid="email-input"]').fill(uniqueEmail);
-    await homePage.page.locator('[data-testid="password-input"]').fill(newUser.password);
-    await homePage.page.locator('[data-testid="confirm-password-input"]').fill(newUser.password);
+    // Register user
+    await page.click('text=Sign up');
+    await page.waitForSelector('#signInModal');
+    await page.fill('#sign-username', username);
+    await page.fill('#sign-password', password);
     
-    await homePage.page.locator('[data-testid="register-button"]').click();
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('button[onclick="register()"]');
+    await page.waitForTimeout(2000);
     
-    // Verify redirect to login page or dashboard
-    await expect(homePage.page).toHaveURL(/login|dashboard/);
+    // Now login with the same credentials
+    await page.click('text=Log in');
+    await page.waitForSelector('#logInModal');
+    await page.fill('#loginusername', username);
+    await page.fill('#loginpassword', password);
+    await page.click('button[onclick="logIn()"]');
+    await page.waitForTimeout(2000);
+    
+    // Verify user is logged in (username should appear in navigation)
+    await expect(page.locator(`#nameofuser`)).toContainText(`Welcome ${username}`);
+  });
+
+  test('should show error for duplicate username', async ({ page }) => {
+    const timestamp = Date.now();
+    const username = `duplicate${timestamp}`;
+    const password = 'testpass123';
+    
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
+    
+    // Register first time
+    await page.click('text=Sign up');
+    await page.waitForSelector('#signInModal');
+    await page.fill('#sign-username', username);
+    await page.fill('#sign-password', password);
+    
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('button[onclick="register()"]');
+    await page.waitForTimeout(2000);
+    
+    // Try to register again with same username
+    await page.click('text=Sign up');
+    await page.waitForSelector('#signInModal');
+    await page.fill('#sign-username', username);
+    await page.fill('#sign-password', password);
+    
+    page.once('dialog', dialog => {
+      expect(dialog.message()).toContain('This user already exist');
+      dialog.accept();
+    });
+    
+    await page.click('button[onclick="register()"]');
+    await page.waitForTimeout(2000);
+  });
+
+  test('should show error for invalid login', async ({ page }) => {
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
+    
+    // Open login modal
+    await page.click('text=Log in');
+    await page.waitForSelector('#logInModal');
+    
+    // Fill with invalid credentials
+    await page.fill('#loginusername', 'invaliduser99999');
+    await page.fill('#loginpassword', 'wrongpassword');
+    
+    page.once('dialog', dialog => {
+      expect(dialog.message()).toContain('User does not exist');
+      dialog.accept();
+    });
+    
+    await page.click('button[onclick="logIn()"]');
+    await page.waitForTimeout(2000);
+  });
+
+  test('should close modals correctly', async ({ page }) => {
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
+    
+    // Open sign up modal
+    await page.click('text=Sign up');
+    await page.waitForSelector('#signInModal');
+    
+    // Close modal
+    await page.click('#signInModal .close');
+    await page.waitForTimeout(500);
+    
+    // Verify modal is closed
+    await expect(page.locator('#signInModal')).not.toBeVisible();
+  });
+
+  test('should handle logout functionality', async ({ page }) => {
+    // Register and login first
+    const timestamp = Date.now();
+    const username = `logouttest${timestamp}`;
+    const password = 'testpass123';
+    
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
+    
+    // Register
+    await page.click('text=Sign up');
+    await page.waitForSelector('#signInModal');
+    await page.fill('#sign-username', username);
+    await page.fill('#sign-password', password);
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('button[onclick="register()"]');
+    await page.waitForTimeout(2000);
+    
+    // Login
+    await page.click('text=Log in');
+    await page.waitForSelector('#logInModal');
+    await page.fill('#loginusername', username);
+    await page.fill('#loginpassword', password);
+    await page.click('button[onclick="logIn()"]');
+    await page.waitForTimeout(2000);
+    
+    // Verify logged in
+    await expect(page.locator(`#nameofuser`)).toContainText(`Welcome ${username}`);
+    
+    // Logout
+    await page.click('#logout2');
+    await page.waitForTimeout(1000);
+    
+    // Verify logged out (Log in link should be visible again)
+    await expect(page.locator('text=Log in')).toBeVisible();
   });
 });

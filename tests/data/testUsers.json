@@ -1,26 +1,32 @@
 {
   "validUser": {
-    "email": "testuser@example.com",
-    "password": "TestPassword123!",
-    "firstName": "John",
-    "lastName": "Doe",
-    "phone": "+1234567890"
-  },
-  "invalidUser": {
-    "email": "invalid@example.com",
-    "password": "WrongPassword123!"
+    "username": "testuser2024",
+    "password": "TestPass123"
   },
   "newUser": {
-    "email": "newuser@example.com",
-    "password": "NewPassword123!",
-    "firstName": "Jane",
-    "lastName": "Smith",
-    "phone": "+1987654321"
+    "username": "newuser_timestamp",
+    "password": "NewPass123",
+    "note": "Use dynamic username generation in tests to avoid conflicts - append Date.now() in test code"
   },
-  "guestUser": {
-    "firstName": "Guest",
-    "lastName": "User",
-    "email": "guest@example.com",
-    "phone": "+1111111111"
+  "automationUser": {
+    "username": "automation_test_user",
+    "password": "AutoTest123"
+  },
+  "luxuryTestUser": {
+    "username": "luxury_tester",
+    "password": "LuxuryTest123",
+    "note": "User for luxury checkout scenarios"
+  },
+  "invalidLogin": {
+    "username": "nonexistent_user",
+    "password": "WrongPassword123"
+  },
+  "emptyCredentials": {
+    "username": "",
+    "password": ""
+  },
+  "checkoutGuest": {
+    "name": "Guest User",
+    "note": "Demoblaze allows checkout without login using name field"
   }
 }

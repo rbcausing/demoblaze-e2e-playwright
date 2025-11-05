@@ -1,153 +1,105 @@
 import { test, expect } from '../fixtures/testFixtures';
 
-test.describe('Checkout Flow', () => {
-  test.beforeEach(async ({ productPage, cartPage, testProducts }) => {
+test.describe('Demoblaze Checkout Flow', () => {
+  test.beforeEach(async ({ page }) => {
     // Add items to cart before checkout tests
-    const products = testProducts.featuredProducts.slice(0, 2);
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
     
-    await productPage.goto(products[0].id);
-    await productPage.addToCart();
+    // Add product to cart
+    await page.click('text=Phones');
+    await page.waitForSelector('.card-block');
+    await page.click('.card-title a >> nth=0');
+    await page.waitForSelector('.btn.btn-success.btn-lg');
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('text=Add to cart');
+    await page.waitForTimeout(1000);
     
-    await productPage.goto(products[1].id);
-    await productPage.addToCart();
-    
-    await cartPage.goto();
-    await cartPage.proceedToCheckout();
+    // Go to cart and proceed to checkout
+    await page.click('#cartur');
+    await page.waitForSelector('tbody');
+    await page.click('button.btn-success');
+    await page.waitForSelector('#orderModal');
   });
 
-  test('should complete full checkout process @smoke', async ({ 
-    checkoutPage, 
-    shippingAddresses, 
-    paymentInfo 
-  }) => {
-    // Fill shipping information
-    await checkoutPage.fillShippingAddress(shippingAddresses.validAddress);
-    
-    // Fill payment information
-    await checkoutPage.fillPaymentInfo(paymentInfo.validCard);
+  test('should complete full checkout process @smoke', async ({ page, shippingAddresses, paymentInfo }) => {
+    // Fill order form
+    await page.fill('#name', 'Test User');
+    await page.fill('#country', 'USA');
+    await page.fill('#city', 'New York');
+    await page.fill('#card', '4111111111111111');
+    await page.fill('#month', '12');
+    await page.fill('#year', '2026');
     
     // Place order
-    await checkoutPage.placeOrder();
+    await page.click('button[onclick="purchaseOrder()"]');
     
     // Verify order confirmation
-    await expect(checkoutPage.page.locator('[data-testid="order-confirmation"]'))
-      .toContainText('Order placed successfully');
+    await expect(page.locator('.sweet-alert h2')).toHaveText('Thank you for your purchase!');
     
-    // Verify order number is displayed
-    await expect(checkoutPage.page.locator('[data-testid="order-number"]'))
-      .toBeVisible();
+    // Verify order details are displayed
+    await expect(page.locator('.sweet-alert .lead')).toBeVisible();
   });
 
-  test('should validate required shipping fields', async ({ checkoutPage }) => {
+  test('should validate required fields', async ({ page }) => {
     // Try to place order without filling required fields
-    await checkoutPage.placeOrder();
+    await page.click('button[onclick="purchaseOrder()"]');
     
-    // Verify validation messages appear
-    await expect(checkoutPage.firstNameInput).toHaveAttribute('aria-invalid', 'true');
-    await expect(checkoutPage.lastNameInput).toHaveAttribute('aria-invalid', 'true');
-    await expect(checkoutPage.addressInput).toHaveAttribute('aria-invalid', 'true');
+    // In Demoblaze, the modal stays open if fields are empty
+    // Verify modal is still visible
+    await expect(page.locator('#orderModal')).toBeVisible();
   });
 
-  test('should validate payment information', async ({ 
-    checkoutPage, 
-    shippingAddresses, 
-    paymentInfo 
-  }) => {
-    await checkoutPage.fillShippingAddress(shippingAddresses.validAddress);
+  test('should handle form submission with valid data', async ({ page }) => {
+    // Fill all required fields
+    await page.fill('#name', 'John Doe');
+    await page.fill('#country', 'United States');
+    await page.fill('#city', 'New York');
+    await page.fill('#card', '1234567812345678');
+    await page.fill('#month', '12');
+    await page.fill('#year', '2025');
     
-    // Try with invalid card
-    await checkoutPage.fillPaymentInfo(paymentInfo.invalidCard);
-    await checkoutPage.placeOrder();
+    // Place order
+    await page.click('button[onclick="purchaseOrder()"]');
     
-    // Verify payment error message
-    await expect(checkoutPage.page.locator('[data-testid="payment-error"]'))
-      .toContainText('Invalid card information');
+    // Verify success
+    await expect(page.locator('.sweet-alert h2')).toHaveText('Thank you for your purchase!');
   });
 
-  test('should handle expired card', async ({ 
-    checkoutPage, 
-    shippingAddresses, 
-    paymentInfo 
-  }) => {
-    await checkoutPage.fillShippingAddress(shippingAddresses.validAddress);
-    await checkoutPage.fillPaymentInfo(paymentInfo.expiredCard);
-    await checkoutPage.placeOrder();
+  test('should display order details correctly', async ({ page }) => {
+    // Complete order
+    await page.fill('#name', 'Test User');
+    await page.fill('#country', 'USA');
+    await page.fill('#city', 'New York');
+    await page.fill('#card', '4111111111111111');
+    await page.fill('#month', '12');
+    await page.fill('#year', '2026');
     
-    // Verify expired card error
-    await expect(checkoutPage.page.locator('[data-testid="payment-error"]'))
-      .toContainText('Card has expired');
+    await page.click('button[onclick="purchaseOrder()"]');
+    
+    // Verify order details contain expected information
+    const orderDetails = await page.locator('.sweet-alert .lead').textContent();
+    expect(orderDetails).toContain('Id:');
+    expect(orderDetails).toContain('Amount:');
+    expect(orderDetails).toContain('Card:');
+    expect(orderDetails).toContain('Name:');
   });
 
-  test('should calculate order total correctly', async ({ 
-    checkoutPage, 
-    shippingAddresses, 
-    paymentInfo 
-  }) => {
-    await checkoutPage.fillShippingAddress(shippingAddresses.validAddress);
-    await checkoutPage.fillPaymentInfo(paymentInfo.validCard);
+  test('should close order modal after completion', async ({ page }) => {
+    // Complete order
+    await page.fill('#name', 'Test User');
+    await page.fill('#country', 'USA');
+    await page.fill('#city', 'New York');
+    await page.fill('#card', '4111111111111111');
+    await page.fill('#month', '12');
+    await page.fill('#year', '2026');
     
-    const orderTotal = await checkoutPage.getOrderTotal();
-    const shippingCost = await checkoutPage.getShippingCost();
-    const taxAmount = await checkoutPage.getTaxAmount();
+    await page.click('button[onclick="purchaseOrder()"]');
     
-    // Verify all values are displayed and reasonable
-    expect(orderTotal).toMatch(/\$\d+\.\d{2}/);
-    expect(shippingCost).toMatch(/\$\d+\.\d{2}/);
-    expect(taxAmount).toMatch(/\$\d+\.\d{2}/);
-  });
-
-  test('should use same address for billing', async ({ 
-    checkoutPage, 
-    shippingAddresses, 
-    paymentInfo 
-  }) => {
-    await checkoutPage.fillShippingAddress(shippingAddresses.validAddress);
-    await checkoutPage.useSameAsBillingAddress();
-    await checkoutPage.fillPaymentInfo(paymentInfo.validCard);
-    
-    // Verify billing fields are auto-filled
-    const isFormValid = await checkoutPage.isFormValid();
-    expect(isFormValid).toBe(true);
-    
-    await checkoutPage.placeOrder();
-    
-    // Verify order is placed successfully
-    await expect(checkoutPage.page.locator('[data-testid="order-confirmation"]'))
-      .toBeVisible();
-  });
-
-  test('should handle international shipping', async ({ 
-    checkoutPage, 
-    shippingAddresses, 
-    paymentInfo 
-  }) => {
-    await checkoutPage.fillShippingAddress(shippingAddresses.internationalAddress);
-    await checkoutPage.fillPaymentInfo(paymentInfo.validCard);
-    
-    // Verify international shipping cost is calculated
-    const shippingCost = await checkoutPage.getShippingCost();
-    expect(parseFloat(shippingCost.replace('$', ''))).toBeGreaterThan(0);
-    
-    await checkoutPage.placeOrder();
-    
-    // Verify order is processed for international address
-    await expect(checkoutPage.page.locator('[data-testid="order-confirmation"]'))
-      .toBeVisible();
-  });
-
-  test('should allow editing cart from checkout', async ({ checkoutPage, cartPage }) => {
-    // Click edit cart link
-    await checkoutPage.page.locator('[data-testid="edit-cart-link"]').click();
+    // Click OK to close modal
+    await page.click('.confirm.btn.btn-lg.btn-primary');
     
     // Verify we're back on cart page
-    expect(checkoutPage.page.url()).toContain('/cart');
-    
-    // Make changes and return to checkout
-    await cartPage.updateItemQuantity(0, 2);
-    await cartPage.proceedToCheckout();
-    
-    // Verify quantity change is reflected
-    const updatedTotal = await checkoutPage.getOrderTotal();
-    expect(updatedTotal).toBeTruthy();
+    await expect(page.locator('tbody')).toBeVisible();
   });
 });

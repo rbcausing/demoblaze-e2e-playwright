@@ -1,117 +1,112 @@
 import { test, expect } from '../fixtures/testFixtures';
 
-test.describe('Shopping Cart - Add to Cart', () => {
-  test.beforeEach(async ({ homePage }) => {
-    await homePage.goto();
+test.describe('Demoblaze Shopping Cart - Add to Cart', () => {
+  test.beforeEach(async ({ page }) => {
+    // Navigate to Demoblaze homepage
+    await page.goto('https://www.demoblaze.com/');
+    await page.waitForSelector('text=Home');
   });
 
-  test('should add a single product to cart @smoke', async ({ 
-    homePage, 
-    productPage, 
-    cartPage, 
-    testProducts 
-  }) => {
-    const product = testProducts.featuredProducts[0];
+  test('should add a single product to cart @smoke', async ({ page, testProducts }) => {
+    const product = testProducts.featuredProducts[0]; // Samsung galaxy s6
     
-    // Navigate to product page
-    await homePage.searchForProduct(product.name);
-    await productPage.goto(product.id);
+    // Navigate to Phones category
+    await page.click('text=Phones');
+    await page.waitForSelector('.card-block');
+    
+    // Click on the first product (Samsung galaxy s6)
+    await page.click('.card-title a >> nth=0');
+    await page.waitForSelector('.btn.btn-success.btn-lg');
     
     // Verify product details
-    await expect(productPage.productTitle).toContainText(product.name);
-    await expect(productPage.productPrice).toContainText(product.price);
+    await expect(page.locator('h2.name')).toContainText(product.name);
+    await expect(page.locator('h3.price-container')).toContainText(product.price);
     
-    // Select size and color if available
-    if (await productPage.sizeSelector.isVisible()) {
-      await productPage.selectSize(product.sizes[0]);
-    }
-    if (await productPage.colorSelector.isVisible()) {
-      await productPage.selectColor(product.colors[0]);
-    }
+    // Add to cart with dialog handling
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('text=Add to cart');
+    await page.waitForTimeout(1000);
     
-    // Add to cart
-    await productPage.addToCart();
+    // Verify cart icon shows item count (Demoblaze doesn't show count in cart icon)
+    // Instead, navigate to cart to verify
+    await page.click('#cartur');
+    await page.waitForSelector('tbody');
     
-    // Verify cart icon shows item count
-    await expect(homePage.cartIcon).toContainText('1');
-    
-    // Navigate to cart and verify item
-    await cartPage.goto();
-    const cartItems = await cartPage.getCartItems();
-    
-    expect(cartItems).toHaveLength(1);
-    expect(cartItems[0].name).toContain(product.name);
-    expect(cartItems[0].price).toContain(product.price);
-    expect(cartItems[0].quantity).toBe(1);
+    const cartItems = await page.locator('tbody tr').count();
+    expect(cartItems).toBe(1);
   });
 
-  test('should add multiple quantities of the same product', async ({ 
-    productPage, 
-    cartPage, 
-    testProducts 
-  }) => {
+  test('should add multiple quantities of the same product', async ({ page, testProducts }) => {
     const product = testProducts.featuredProducts[0];
-    const quantity = 3;
     
-    await productPage.goto(product.id);
-    await productPage.setQuantity(quantity);
-    await productPage.addToCart();
+    // Navigate to product
+    await page.click('text=Phones');
+    await page.waitForSelector('.card-block');
+    await page.click('.card-title a >> nth=0');
+    await page.waitForSelector('.btn.btn-success.btn-lg');
     
-    await cartPage.goto();
-    const cartItems = await cartPage.getCartItems();
+    // Add to cart multiple times
+    for (let i = 0; i < 3; i++) {
+      page.once('dialog', dialog => dialog.accept());
+      await page.click('text=Add to cart');
+      await page.waitForTimeout(1000);
+    }
     
-    expect(cartItems).toHaveLength(1);
-    expect(cartItems[0].quantity).toBe(quantity);
+    // Verify cart has multiple quantities
+    await page.click('#cartur');
+    await page.waitForSelector('tbody');
+    
+    const cartItems = await page.locator('tbody tr').count();
+    expect(cartItems).toBe(3); // Demoblaze adds each as separate item
   });
 
-  test('should not add out of stock product to cart', async ({ 
-    productPage, 
-    testProducts 
-  }) => {
-    const outOfStockProduct = testProducts.outOfStockProduct;
+  test('should add different products to cart', async ({ page, testProducts }) => {
+    // Add first product (Samsung galaxy s6)
+    await page.click('text=Phones');
+    await page.waitForSelector('.card-block');
+    await page.click('.card-title a >> nth=0');
+    await page.waitForSelector('.btn.btn-success.btn-lg');
     
-    await productPage.goto(outOfStockProduct.id);
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('text=Add to cart');
+    await page.waitForTimeout(1000);
     
-    // Verify add to cart button is disabled or shows out of stock
-    await expect(productPage.addToCartButton).toBeDisabled();
-  });
-
-  test('should add different products to cart', async ({ 
-    homePage, 
-    productPage, 
-    cartPage, 
-    testProducts 
-  }) => {
-    const products = testProducts.featuredProducts.slice(0, 2);
+    // Navigate back to home and add second product
+    await page.click('text=Home');
+    await page.click('text=Laptops');
+    await page.waitForSelector('.card-block');
+    await page.click('.card-title a >> nth=0');
+    await page.waitForSelector('.btn.btn-success.btn-lg');
     
-    // Add first product
-    await productPage.goto(products[0].id);
-    await productPage.addToCart();
-    
-    // Add second product
-    await productPage.goto(products[1].id);
-    await productPage.addToCart();
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('text=Add to cart');
+    await page.waitForTimeout(1000);
     
     // Verify both products in cart
-    await cartPage.goto();
-    const cartItems = await cartPage.getCartItems();
+    await page.click('#cartur');
+    await page.waitForSelector('tbody');
     
-    expect(cartItems).toHaveLength(2);
-    expect(cartItems[0].name).toContain(products[0].name);
-    expect(cartItems[1].name).toContain(products[1].name);
+    const cartItems = await page.locator('tbody tr').count();
+    expect(cartItems).toBe(2);
   });
 
-  test('should show success message when adding to cart', async ({ 
-    productPage, 
-    testProducts 
-  }) => {
-    const product = testProducts.featuredProducts[0];
+  test('should show success message when adding to cart', async ({ page }) => {
+    await page.click('text=Phones');
+    await page.waitForSelector('.card-block');
+    await page.click('.card-title a >> nth=0');
+    await page.waitForSelector('.btn.btn-success.btn-lg');
     
-    await productPage.goto(product.id);
-    await productPage.addToCart();
+    // Set up dialog handler to capture the message
+    let dialogMessage = '';
+    page.once('dialog', dialog => {
+      dialogMessage = dialog.message();
+      dialog.accept();
+    });
     
-    // Verify success message appears
-    await expect(productPage.page.locator('[data-testid="success-message"]'))
-      .toContainText('Added to cart');
+    await page.click('text=Add to cart');
+    await page.waitForTimeout(1000);
+    
+    // Verify success message in dialog
+    expect(dialogMessage).toContain('Product added');
   });
 });
