@@ -1,4 +1,4 @@
-name: Demoblaze E2E Tests
+name: Demoblaze E2E Tests (Comprehensive)
 
 on:
   push:
