@@ -14,11 +14,11 @@ export class ApiHelpers {
       },
       body: JSON.stringify(userData),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to create user: ${response.statusText}`);
     }
-    
+
     return await response.json();
   }
 
@@ -33,11 +33,11 @@ export class ApiHelpers {
       },
       body: JSON.stringify({ email, password }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to authenticate: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
     return data.token;
   }
@@ -45,20 +45,25 @@ export class ApiHelpers {
   /**
    * Add product to cart via API
    */
-  static async addToCart(baseUrl: string, token: string, productId: string, quantity: number = 1): Promise<any> {
+  static async addToCart(
+    baseUrl: string,
+    token: string,
+    productId: string,
+    quantity: number = 1
+  ): Promise<any> {
     const response = await fetch(`${baseUrl}/api/cart`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ productId, quantity }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to add to cart: ${response.statusText}`);
     }
-    
+
     return await response.json();
   }
 
@@ -69,14 +74,14 @@ export class ApiHelpers {
     const response = await fetch(`${baseUrl}/api/cart`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to get cart: ${response.statusText}`);
     }
-    
+
     return await response.json();
   }
 
@@ -88,15 +93,15 @@ export class ApiHelpers {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(orderData),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to create order: ${response.statusText}`);
     }
-    
+
     return await response.json();
   }
 
@@ -107,11 +112,11 @@ export class ApiHelpers {
     const response = await fetch(`${baseUrl}/api/products/${productId}`, {
       method: 'GET',
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to get product: ${response.statusText}`);
     }
-    
+
     return await response.json();
   }
 
@@ -122,11 +127,11 @@ export class ApiHelpers {
     const response = await fetch(`${baseUrl}/api/products/search?q=${encodeURIComponent(query)}`, {
       method: 'GET',
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to search products: ${response.statusText}`);
     }
-    
+
     return await response.json();
   }
 
@@ -137,10 +142,10 @@ export class ApiHelpers {
     const response = await fetch(`${baseUrl}/api/users/${userId}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to delete user: ${response.statusText}`);
     }
@@ -153,10 +158,10 @@ export class ApiHelpers {
     const response = await fetch(`${baseUrl}/api/cart`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to clear cart: ${response.statusText}`);
     }

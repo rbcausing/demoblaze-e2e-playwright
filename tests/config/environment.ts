@@ -75,8 +75,7 @@ export class Environment {
 
   // Environment-specific configurations
   public isProduction(): boolean {
-    return this.config.baseUrl.includes('production') || 
-           this.config.baseUrl.includes('prod');
+    return this.config.baseUrl.includes('production') || this.config.baseUrl.includes('prod');
   }
 
   public isStaging(): boolean {
@@ -84,8 +83,7 @@ export class Environment {
   }
 
   public isLocal(): boolean {
-    return this.config.baseUrl.includes('localhost') || 
-           this.config.baseUrl.includes('127.0.0.1');
+    return this.config.baseUrl.includes('localhost') || this.config.baseUrl.includes('127.0.0.1');
   }
 
   // Test data environment

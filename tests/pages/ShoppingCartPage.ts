@@ -32,14 +32,14 @@ export class ShoppingCartPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     // Demoblaze-specific selectors
     this.cartTable = page.locator('tbody');
     this.cartRows = page.locator('tbody tr');
     this.totalPrice = page.locator('#totalp');
     this.placeOrderButton = page.locator('button.btn-success');
     this.deleteLinks = page.locator('td a');
-    
+
     // Keep generic selectors for backward compatibility
     this.cartItems = page.locator('[data-testid="cart-item"]');
     this.cartEmptyMessage = page.locator('[data-testid="cart-empty-message"]');
@@ -71,7 +71,7 @@ export class ShoppingCartPage extends BasePage {
   async getCartItemsCount(): Promise<number> {
     // Wait for cart to load
     await this.page.waitForSelector('.success', { timeout: 10000 });
-    
+
     // Count the number of items in the cart
     const items = await this.cartRows.count();
     return items;
@@ -80,24 +80,24 @@ export class ShoppingCartPage extends BasePage {
   async getCartItems(): Promise<CartItem[]> {
     const items: CartItem[] = [];
     const count = await this.getCartItemsCount();
-    
+
     for (let i = 0; i < count; i++) {
-      const title = await this.page.locator('td:nth-child(2)').nth(i).textContent() || '';
-      const price = await this.page.locator('td:nth-child(3)').nth(i).textContent() || '';
-      
-      items.push({ 
-        name: title, 
-        price: price, 
+      const title = (await this.page.locator('td:nth-child(2)').nth(i).textContent()) || '';
+      const price = (await this.page.locator('td:nth-child(3)').nth(i).textContent()) || '';
+
+      items.push({
+        name: title,
+        price: price,
         quantity: 1, // Demoblaze doesn't show quantity in cart
         size: undefined,
-        color: undefined
+        color: undefined,
       });
     }
-    
+
     return items;
   }
 
-  async updateItemQuantity(itemIndex: number, newQuantity: number): Promise<void> {
+  async updateItemQuantity(_itemIndex: number, _newQuantity: number): Promise<void> {
     // Demoblaze doesn't support quantity updates in cart
     console.log('Quantity updates not supported on Demoblaze');
   }
@@ -116,7 +116,7 @@ export class ShoppingCartPage extends BasePage {
     await this.page.goBack();
   }
 
-  async applyPromoCode(code: string): Promise<void> {
+  async applyPromoCode(_code: string): Promise<void> {
     // Demoblaze doesn't have promo codes
     console.log('Promo codes not available on Demoblaze');
   }
@@ -126,7 +126,7 @@ export class ShoppingCartPage extends BasePage {
   }
 
   async getTotal(): Promise<string> {
-    return await this.totalPrice.textContent() || '';
+    return (await this.totalPrice.textContent()) || '';
   }
 
   async getPromoCodeMessage(): Promise<string> {

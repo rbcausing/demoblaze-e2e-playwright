@@ -13,7 +13,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { 
+      use: {
         ignoreHTTPSErrors: true,
         // Additional browser args for public networks
         launchOptions: {
@@ -22,9 +22,9 @@ export default defineConfig({
             '--ignore-ssl-errors',
             '--ignore-certificate-errors-spki-list',
             '--disable-web-security',
-            '--allow-running-insecure-content'
-          ]
-        }
+            '--allow-running-insecure-content',
+          ],
+        },
       },
     },
   ],

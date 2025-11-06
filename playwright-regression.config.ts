@@ -7,26 +7,29 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
   testIgnore: ['**/debug/**/*.spec.ts'],
-  
+
   fullyParallel: true,
   forbidOnly: true,
   retries: 2, // Always retry for stability
   workers: process.env.CI ? 4 : 3, // More workers for regression
-  
+
   timeout: 90000, // Longer timeout for complex flows
-  
+
   reporter: [
     ['html', { outputFolder: 'playwright-report/regression', open: 'never' }],
     ['json', { outputFile: 'test-results/regression-results.json' }],
     ['junit', { outputFile: 'test-results/regression-results.xml' }],
-    ['allure-playwright', { 
-      outputFolder: 'allure-results',
-      detail: true,
-      suiteTitle: true,
-    }],
+    [
+      'allure-playwright',
+      {
+        outputFolder: 'allure-results',
+        detail: true,
+        suiteTitle: true,
+      },
+    ],
     ['list'],
   ],
-  
+
   use: {
     baseURL: process.env.BASE_URL || 'https://www.demoblaze.com',
     trace: 'on-first-retry',
@@ -50,7 +53,7 @@ export default defineConfig({
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
-    
+
     // All mobile browsers
     {
       name: 'mobile-chrome',
@@ -60,11 +63,11 @@ export default defineConfig({
       name: 'mobile-safari',
       use: { ...devices['iPhone 12'] },
     },
-    
+
     // Edge for Windows compatibility
     {
       name: 'msedge',
-      use: { 
+      use: {
         ...devices['Desktop Edge'],
         channel: 'msedge',
       },

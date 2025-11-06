@@ -53,7 +53,7 @@ jobs:
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: 🧪 Run smoke tests
-        run: npx playwright test --project=${{ matrix.browser }} --grep="@smoke" --reporter=html,json,junit
+        run: npx playwright test --project=${{ matrix.browser }} --grep="@smoke" --reporter=html --reporter=json --reporter=junit
         env:
           CI: true
           SKIP_MOBILE: true
@@ -105,7 +105,7 @@ jobs:
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: 🧪 Run full test suite
-        run: npx playwright test --project=${{ matrix.browser }} --reporter=html,json,junit
+        run: npx playwright test --project=${{ matrix.browser }} --reporter=html --reporter=json --reporter=junit
         env:
           CI: true
           SKIP_MOBILE: true
@@ -159,7 +159,7 @@ jobs:
         run: npx playwright install --with-deps chromium webkit
 
       - name: 🧪 Run mobile tests
-        run: npx playwright test --project="${{ matrix.device }}" --grep="@smoke" --reporter=html,json,junit
+        run: npx playwright test --project="${{ matrix.device }}" --grep="@smoke" --reporter=html --reporter=json --reporter=junit
         env:
           CI: true
 
@@ -199,7 +199,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: 🧪 Run regression tests
-        run: npx playwright test --config=playwright-regression.config.ts --reporter=html,json,junit
+        run: npx playwright test --config=playwright-regression.config.ts --reporter=html --reporter=json --reporter=junit
         env:
           CI: true
           SKIP_MOBILE: true

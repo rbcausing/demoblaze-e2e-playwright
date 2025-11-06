@@ -24,9 +24,9 @@
     "test:product": "playwright test tests/product/",
     "test:demoblaze": "playwright test tests/demoblaze/",
     
-    "test:jenkins": "playwright test --reporter=html,junit --retries=2",
-    "test:jenkins:smoke": "playwright test tests/smoke/ --reporter=html,junit --retries=2",
-    "test:jenkins:full": "playwright test --reporter=html,junit --retries=2",
+    "test:jenkins": "playwright test --reporter=html --reporter=junit --retries=2",
+    "test:jenkins:smoke": "playwright test tests/smoke/ --reporter=html --reporter=junit --retries=2",
+    "test:jenkins:full": "playwright test --reporter=html --reporter=junit --retries=2",
     
     "report": "playwright show-report",
     "allure:generate": "allure generate allure-results --clean -o allure-report",
@@ -39,7 +39,8 @@
     "lint": "eslint tests/**/*.ts --fix",
     "format": "prettier --write \"tests/**/*.ts\" \"*.ts\"",
     "format:check": "prettier --check \"tests/**/*.ts\" \"*.ts\"",
-    "check": "npm run format:check && npm run lint"
+    "check": "npm run format:check && npm run lint",
+    "prepare": "husky install"
   },
   "keywords": [
     "playwright",
@@ -58,6 +59,7 @@
     "@typescript-eslint/parser": "^6.0.0",
     "allure-playwright": "^3.4.1",
     "eslint": "^8.0.0",
+    "husky": "^8.0.0",
     "prettier": "^3.0.0",
     "typescript": "^5.0.0"
   }

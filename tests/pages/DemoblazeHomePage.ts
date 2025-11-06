@@ -1,9 +1,9 @@
-import { Page, Locator } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 /**
  * Page Object Model for Demoblaze.com Homepage
  * Handles navigation, product browsing, and category selection
- * 
+ *
  * @example
  * ```typescript
  * const homePage = new DemoblazeHomePage(page);
@@ -40,11 +40,11 @@ export class DemoblazeHomePage {
    */
   async navigate(): Promise<void> {
     try {
-      await this.page.goto('https://www.demoblaze.com/', { 
+      await this.page.goto('https://www.demoblaze.com/', {
         waitUntil: 'domcontentloaded',
-        timeout: 30000
+        timeout: 30000,
       });
-      
+
       // Wait for key elements to be visible
       await this.page.waitForSelector('text=Home', { timeout: 10000 });
     } catch (error) {
@@ -79,12 +79,12 @@ export class DemoblazeHomePage {
   async addFirstProductToCart(): Promise<void> {
     await this.page.click('.card-title a >> nth=0');
     await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
-    
+
     // Set up dialog handler before clicking
     this.page.once('dialog', async dialog => {
       await dialog.accept();
     });
-    
+
     await this.page.click('text=Add to cart');
     await this.page.waitForTimeout(1000);
   }
@@ -92,9 +92,9 @@ export class DemoblazeHomePage {
   /**
    * Intelligent algorithm to find and add the most expensive (luxury) item to cart
    * Parses all product prices and identifies the highest-priced item
-   * 
+   *
    * @throws {Error} If no valid product prices are found
-   * 
+   *
    * @example
    * ```typescript
    * await homePage.selectLaptopsCategory();
@@ -103,13 +103,13 @@ export class DemoblazeHomePage {
    */
   async findLuxuryItem(): Promise<void> {
     await this.page.waitForSelector('.card-block', { timeout: 10000 });
-    
+
     const productCards = await this.page.locator('.card-block').all();
-    
+
     let maxPrice = 0;
     let luxuryCardIndex = 0;
     const validPrices = [];
-    
+
     // Parse prices and find the most expensive item
     for (let i = 0; i < productCards.length; i++) {
       try {
@@ -117,7 +117,7 @@ export class DemoblazeHomePage {
         if (priceElement && priceElement.startsWith('$')) {
           const price = parseFloat(priceElement.replace('$', ''));
           validPrices.push(price);
-          
+
           if (price > maxPrice) {
             maxPrice = price;
             luxuryCardIndex = i;
@@ -128,15 +128,15 @@ export class DemoblazeHomePage {
         continue;
       }
     }
-    
+
     if (validPrices.length === 0) {
       throw new Error('No valid product prices found');
     }
-    
+
     const luxuryCard = productCards[luxuryCardIndex];
     await luxuryCard.locator('a').first().click();
     await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
-    
+
     // Handle add to cart dialog
     this.page.once('dialog', dialog => dialog.accept());
     await this.page.click('.btn.btn-success.btn-lg');
@@ -191,7 +191,7 @@ export class DemoblazeHomePage {
   async addProductToCartByIndex(index: number): Promise<void> {
     await this.productTitles.nth(index).click();
     await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
-    
+
     this.page.once('dialog', dialog => dialog.accept());
     await this.page.click('text=Add to cart');
     await this.page.waitForTimeout(1000);

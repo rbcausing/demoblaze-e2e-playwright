@@ -1,4 +1,4 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base } from '@playwright/test';
 import { HomePage } from '../pages/HomePage';
 import { ProductPage } from '../pages/ProductPage';
 import { ShoppingCartPage } from '../pages/ShoppingCartPage';
@@ -23,34 +23,38 @@ export const test = base.extend<{
     const homePage = new HomePage(page);
     await use(homePage);
   },
-  
+
   productPage: async ({ page }, use) => {
     const productPage = new ProductPage(page);
     await use(productPage);
   },
-  
+
   cartPage: async ({ page }, use) => {
     const cartPage = new ShoppingCartPage(page);
     await use(cartPage);
   },
-  
+
   checkoutPage: async ({ page }, use) => {
     const checkoutPage = new CheckoutPage(page);
     await use(checkoutPage);
   },
-  
+
+  // eslint-disable-next-line no-empty-pattern
   testUsers: async ({}, use) => {
     await use(testUsers);
   },
-  
+
+  // eslint-disable-next-line no-empty-pattern
   testProducts: async ({}, use) => {
     await use(testProducts);
   },
-  
+
+  // eslint-disable-next-line no-empty-pattern
   shippingAddresses: async ({}, use) => {
     await use(shippingAddresses);
   },
-  
+
+  // eslint-disable-next-line no-empty-pattern
   paymentInfo: async ({}, use) => {
     await use(paymentInfo);
   },

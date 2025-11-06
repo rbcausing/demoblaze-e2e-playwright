@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🤖 Running pre-commit checks..."
+
+# Run formatter check
+echo "🎨 Checking code formatting..."
+npm run format:check || {
+  echo "❌ Formatting issues found. Run 'npm run format' to fix."
+  exit 1
+}
+
+# Run linter
+echo "🔍 Running linter..."
+npm run lint || {
+  echo "❌ Linting failed. Please fix the errors above."
+  exit 1
+}
+
+# Validate TypeScript compilation
+echo "🔧 Validating TypeScript..."
+npx tsc --noEmit || {
+  echo "❌ TypeScript compilation errors found."
+  exit 1
+}
+
+# Validate tests can be listed
+echo "📋 Validating tests..."
+npx playwright test --list > /dev/null || {
+  echo "❌ Test discovery failed."
+  exit 1
+}
+
+echo "✅ All pre-commit checks passed!"
+
+
+

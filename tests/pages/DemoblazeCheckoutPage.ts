@@ -3,7 +3,14 @@ import { Page, expect } from '@playwright/test';
 export class DemoblazeCheckoutPage {
   constructor(private page: Page) {}
 
-  async fillForm(name: string, country: string, city: string, card: string, month: string, year: string): Promise<void> {
+  async fillForm(
+    name: string,
+    country: string,
+    city: string,
+    card: string,
+    month: string,
+    year: string
+  ): Promise<void> {
     await this.page.fill('#name', name);
     await this.page.fill('#country', country);
     await this.page.fill('#city', city);
@@ -29,7 +36,14 @@ export class DemoblazeCheckoutPage {
     month: string;
     year: string;
   }): Promise<void> {
-    await this.fillForm(orderData.name, orderData.country, orderData.city, orderData.creditCard, orderData.month, orderData.year);
+    await this.fillForm(
+      orderData.name,
+      orderData.country,
+      orderData.city,
+      orderData.creditCard,
+      orderData.month,
+      orderData.year
+    );
   }
 
   async clickPurchase(): Promise<void> {
@@ -37,11 +51,11 @@ export class DemoblazeCheckoutPage {
   }
 
   async getConfirmationMessage(): Promise<string> {
-    return await this.page.locator('.sweet-alert h2').textContent() || '';
+    return (await this.page.locator('.sweet-alert h2').textContent()) || '';
   }
 
   async getOrderDetails(): Promise<string> {
-    return await this.page.locator('.sweet-alert .lead').textContent() || '';
+    return (await this.page.locator('.sweet-alert .lead').textContent()) || '';
   }
 
   async getOrderId(): Promise<string> {

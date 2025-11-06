@@ -14,7 +14,7 @@ export class DemoblazeCartPage {
   }
 
   async getTotal(): Promise<string> {
-    return await this.page.locator('#totalp').textContent() || '';
+    return (await this.page.locator('#totalp').textContent()) || '';
   }
 
   async deleteItem(): Promise<void> {
@@ -34,22 +34,22 @@ export class DemoblazeCartPage {
   async getCartItemsCount(): Promise<number> {
     // Wait for cart to load
     await this.page.waitForSelector('.success', { timeout: 10000 });
-    
+
     // Count the number of items in the cart
     const items = await this.page.locator('tbody tr').count();
     return items;
   }
 
-  async getCartItemDetails(): Promise<Array<{title: string, price: string}>> {
+  async getCartItemDetails(): Promise<Array<{ title: string; price: string }>> {
     const items = [];
     const count = await this.getCartItemsCount();
-    
+
     for (let i = 0; i < count; i++) {
-      const title = await this.page.locator('td:nth-child(2)').nth(i).textContent() || '';
-      const price = await this.page.locator('td:nth-child(3)').nth(i).textContent() || '';
+      const title = (await this.page.locator('td:nth-child(2)').nth(i).textContent()) || '';
+      const price = (await this.page.locator('td:nth-child(3)').nth(i).textContent()) || '';
       items.push({ title, price });
     }
-    
+
     return items;
   }
 

@@ -19,14 +19,14 @@ export class ProductPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     // Demoblaze-specific selectors
     this.productTitle = page.locator('h2.name');
     this.productPrice = page.locator('h3.price-container');
     this.productDescription = page.locator('#more-information p');
     this.productImages = page.locator('#imgp img');
     this.addToCartButton = page.locator('a.btn-success');
-    
+
     // Demoblaze doesn't have these features, but keep for compatibility
     this.sizeSelector = page.locator('[data-testid="size-selector"]');
     this.colorSelector = page.locator('[data-testid="color-selector"]');
@@ -53,17 +53,17 @@ export class ProductPage extends BasePage {
     await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
   }
 
-  async selectSize(size: string): Promise<void> {
+  async selectSize(_size: string): Promise<void> {
     // Demoblaze doesn't have size selection
     console.log('Size selection not available on Demoblaze');
   }
 
-  async selectColor(color: string): Promise<void> {
+  async selectColor(_color: string): Promise<void> {
     // Demoblaze doesn't have color selection
     console.log('Color selection not available on Demoblaze');
   }
 
-  async setQuantity(quantity: number): Promise<void> {
+  async setQuantity(_quantity: number): Promise<void> {
     // Demoblaze doesn't have quantity selection on product page
     console.log('Quantity selection not available on Demoblaze product page');
   }
@@ -86,11 +86,11 @@ export class ProductPage extends BasePage {
   }
 
   async getProductTitle(): Promise<string> {
-    return await this.productTitle.textContent() || '';
+    return (await this.productTitle.textContent()) || '';
   }
 
   async getProductPrice(): Promise<string> {
-    return await this.productPrice.textContent() || '';
+    return (await this.productPrice.textContent()) || '';
   }
 
   async getProductRating(): Promise<string> {
@@ -103,7 +103,7 @@ export class ProductPage extends BasePage {
     console.log('Reviews section not available on Demoblaze');
   }
 
-  async clickRelatedProduct(index: number): Promise<void> {
+  async clickRelatedProduct(_index: number): Promise<void> {
     // Demoblaze doesn't have related products
     console.log('Related products not available on Demoblaze');
   }

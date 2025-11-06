@@ -57,7 +57,7 @@ export class CheckoutPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     // Demoblaze-specific selectors
     this.orderModal = page.locator('#orderModal');
     this.nameInput = page.locator('#name');
@@ -68,7 +68,7 @@ export class CheckoutPage extends BasePage {
     this.yearInput = page.locator('#year');
     this.purchaseButton = page.locator('button[onclick="purchaseOrder()"]');
     this.confirmationModal = page.locator('.sweet-alert');
-    
+
     // Keep generic selectors for backward compatibility
     this.shippingSection = page.locator('[data-testid="shipping-section"]');
     this.billingSection = page.locator('[data-testid="billing-section"]');
@@ -171,7 +171,7 @@ export class CheckoutPage extends BasePage {
     const card = await this.cardInput.inputValue();
     const month = await this.monthInput.inputValue();
     const year = await this.yearInput.inputValue();
-    
+
     return !!(name && country && city && card && month && year);
   }
 
@@ -179,7 +179,7 @@ export class CheckoutPage extends BasePage {
    * Get order confirmation details from Demoblaze
    */
   async getOrderDetails(): Promise<string> {
-    return await this.page.locator('.sweet-alert .lead').textContent() || '';
+    return (await this.page.locator('.sweet-alert .lead').textContent()) || '';
   }
 
   /**

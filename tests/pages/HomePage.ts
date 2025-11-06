@@ -33,7 +33,7 @@ export class HomePage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     // Demoblaze navigation elements
     this.homeLink = page.locator('text=Home');
     this.contactLink = page.locator('text=Contact');
@@ -75,11 +75,11 @@ export class HomePage extends BasePage {
    */
   async navigateToDemoblaze(): Promise<void> {
     try {
-      await this.page.goto('https://www.demoblaze.com/', { 
+      await this.page.goto('https://www.demoblaze.com/', {
         waitUntil: 'domcontentloaded',
-        timeout: 30000
+        timeout: 30000,
       });
-      
+
       // Wait for key elements to be visible
       await this.page.waitForSelector('text=Home', { timeout: 10000 });
     } catch (error) {
@@ -102,7 +102,7 @@ export class HomePage extends BasePage {
     } else {
       await this.page.click(`text=${categoryName}`);
     }
-    
+
     // Wait for the product container to load
     await this.page.waitForSelector('.card-block');
   }
@@ -113,11 +113,20 @@ export class HomePage extends BasePage {
    */
   async searchForProduct(productName: string): Promise<void> {
     // For Demoblaze, we'll navigate to the appropriate category based on product type
-    if (productName.toLowerCase().includes('laptop') || productName.toLowerCase().includes('notebook')) {
+    if (
+      productName.toLowerCase().includes('laptop') ||
+      productName.toLowerCase().includes('notebook')
+    ) {
       await this.selectCategory('Laptops');
-    } else if (productName.toLowerCase().includes('phone') || productName.toLowerCase().includes('mobile')) {
+    } else if (
+      productName.toLowerCase().includes('phone') ||
+      productName.toLowerCase().includes('mobile')
+    ) {
       await this.selectCategory('Phones');
-    } else if (productName.toLowerCase().includes('monitor') || productName.toLowerCase().includes('display')) {
+    } else if (
+      productName.toLowerCase().includes('monitor') ||
+      productName.toLowerCase().includes('display')
+    ) {
       await this.selectCategory('Monitors');
     } else {
       // Default to laptops if we can't determine category
@@ -146,10 +155,10 @@ export class HomePage extends BasePage {
    */
   async addProductToCartByIndex(index: number): Promise<void> {
     await this.productTitles.nth(index).click();
-    
+
     // Wait for product page to load
     await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
-    
+
     // Set up dialog handler before clicking
     this.page.once('dialog', dialog => dialog.accept());
     await this.page.click('text=Add to cart');
@@ -162,11 +171,11 @@ export class HomePage extends BasePage {
    */
   async findAndAddLuxuryItem(): Promise<void> {
     await this.page.waitForSelector('.card-block', { timeout: 10000 });
-    
+
     const productCards = await this.page.locator('.card-block').all();
     let maxPrice = 0;
     let luxuryCardIndex = 0;
-    
+
     // Find the most expensive item
     for (let i = 0; i < productCards.length; i++) {
       try {
@@ -183,11 +192,11 @@ export class HomePage extends BasePage {
         continue;
       }
     }
-    
+
     const luxuryCard = productCards[luxuryCardIndex];
     await luxuryCard.locator('a').first().click();
     await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
-    
+
     this.page.once('dialog', dialog => dialog.accept());
     await this.page.click('.btn.btn-success.btn-lg');
     await this.page.waitForTimeout(1000);
@@ -195,9 +204,9 @@ export class HomePage extends BasePage {
 
   /**
    * Newsletter signup (not available on Demoblaze)
-   * @param email - Email address (unused)
+   * @param _email - Email address (unused)
    */
-  async signupForNewsletter(email: string): Promise<void> {
+  async signupForNewsletter(_email: string): Promise<void> {
     // Demoblaze doesn't have newsletter signup functionality
   }
 }
