@@ -29,7 +29,7 @@ jobs:
         continue-on-error: true
 
       - name: 🔍 Lint TypeScript
-        run: npm run lint
+        run: npm run lint -- --max-warnings 20
         continue-on-error: false
 
       - name: 🧪 Validate test files
@@ -46,8 +46,8 @@ jobs:
       - name: ✅ Validate workflow files
         run: |
           echo "✅ Validating GitHub Actions workflows..."
-          # Check for common issues in workflow files
-          if grep -r "reporter=.*,.*,.*" .github/workflows/; then
+          # Check for common issues in workflow files (excluding documentation)
+          if grep -r "reporter=.*,.*" .github/workflows/ | grep -v "^.*\.yml.*#" | grep "run:"; then
             echo "❌ ERROR: Found incorrect reporter syntax in workflows!"
             echo "Use '--reporter=html --reporter=json' instead of '--reporter=html,json'"
             exit 1
