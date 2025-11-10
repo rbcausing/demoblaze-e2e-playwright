@@ -91,39 +91,36 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
 
   test('should open user authentication modals @smoke', async ({ page }) => {
     await page.goto('https://www.demoblaze.com/');
-    await page.waitForSelector('text=Home');
 
-    // Forcefully close/hide any auto-opening modals and backdrops
-    await page.evaluate(() => {
-      // Close any visible modals
-      const modals = document.querySelectorAll('.modal.show, .modal.fade.show');
-      modals.forEach(modal => {
-        (modal as HTMLElement).style.display = 'none';
-        modal.classList.remove('show');
-      });
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('text=Home')).toBeVisible();
 
-      // Remove any modal backdrops
-      const backdrops = document.querySelectorAll('.modal-backdrop');
-      backdrops.forEach(backdrop => backdrop.remove());
+    // Wait for any auto-opening modals to appear and dismiss them if present
+    // Using waitFor with a short timeout to avoid hanging if no modal appears
+    const autoModal = page.locator('.modal.show, .modal.fade.show');
+    try {
+      await autoModal.waitFor({ state: 'visible', timeout: 2000 });
+      // If modal is visible, close it
+      await page.locator('.modal.show .close, .modal.fade.show .close').first().click();
+      await autoModal.waitFor({ state: 'hidden', timeout: 3000 });
+    } catch {
+      // No auto-modal appeared, continue
+    }
 
-      // Ensure body doesn't have modal-open class
-      document.body.classList.remove('modal-open');
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    });
-
-    // Wait a moment to ensure clean state
-    await page.waitForTimeout(500);
-
-    // Test sign up modal - use ID selector for navigation link
+    // Test sign up modal
     await page.click('#signin2');
     await expect(page.locator('#signInModal')).toBeVisible({ timeout: 5000 });
-    await page.click('#signInModal .close');
-    await page.waitForTimeout(500); // Increased timeout for modal close animation
-    await expect(page.locator('#signInModal')).toBeHidden();
 
-    // Test login modal - use ID selector for navigation link
+    // Close sign up modal and wait for it to fully disappear
+    await page.locator('#signInModal .close').click();
+    await expect(page.locator('#signInModal')).toBeHidden({ timeout: 3000 });
+
+    // Ensure modal backdrop is gone
+    await expect(page.locator('.modal-backdrop')).toHaveCount(0, { timeout: 2000 });
+
+    // Test login modal
     await page.click('#login2');
-    await expect(page.locator('#logInModal')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#logInModal')).toBeVisible({ timeout: 5000 });
   });
 });
