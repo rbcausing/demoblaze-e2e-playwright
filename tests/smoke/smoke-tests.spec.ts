@@ -93,11 +93,13 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
 
-    // Close About modal if it auto-opened
+    // Close About modal if it auto-opened and wait for animation to complete
     const aboutModal = page.locator('#videoModal');
     if (await aboutModal.isVisible()) {
       await page.click('#videoModal .close');
       await expect(aboutModal).toBeHidden();
+      // Wait for modal close animation to fully complete
+      await page.waitForTimeout(1000);
     }
 
     // Test sign up modal - use ID selector for navigation link
