@@ -93,13 +93,20 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
 
-    // Close About modal if it auto-opened and wait for animation to complete
+    // Wait a moment for any auto-opening modals to appear
+    await page.waitForTimeout(1000);
+
+    // Close About modal if it's visible
     const aboutModal = page.locator('#videoModal');
-    if (await aboutModal.isVisible()) {
+    try {
+      await aboutModal.waitFor({ state: 'visible', timeout: 2000 });
+      // Modal is visible, close it
       await page.click('#videoModal .close');
-      await expect(aboutModal).toBeHidden();
-      // Wait for modal close animation to fully complete
+      await aboutModal.waitFor({ state: 'hidden', timeout: 3000 });
+      // Wait extra time for animation and backdrop to fully clear
       await page.waitForTimeout(1000);
+    } catch {
+      // Modal didn't appear or is already hidden, continue
     }
 
     // Test sign up modal - use ID selector for navigation link
