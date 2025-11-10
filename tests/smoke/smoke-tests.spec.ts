@@ -18,14 +18,14 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
 
     // Test Phones category
     await page.click('text=Phones');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForSelector('.card-block', { state: 'visible' });
     const phoneProducts = await page.locator('.card-block').count();
     expect(phoneProducts).toBeGreaterThan(0);
 
     // Test Laptops category
     await page.click('text=Laptops');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForSelector('.card-block', { state: 'visible' });
     const laptopProducts = await page.locator('.card-block').count();
     expect(laptopProducts).toBeGreaterThan(0);
@@ -37,9 +37,10 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
 
     // Navigate to first product
     await page.click('text=Phones');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForSelector('.card-block', { state: 'visible' });
     await page.click('.card-title a >> nth=0');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForSelector('.btn.btn-success.btn-lg', { state: 'visible' });
 
     // Add to cart with proper dialog handling
@@ -47,11 +48,12 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
       page.waitForEvent('dialog').then(dialog => dialog.accept()),
       page.click('text=Add to cart'),
     ]);
-    await page.waitForLoadState('networkidle');
+    // Wait a bit for cart update (dialog closes immediately)
+    await page.waitForTimeout(500);
 
     // Verify product was added by checking cart
     await page.click('#cartur');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForSelector('tbody', { state: 'visible' });
     const cartItems = await page.locator('tbody tr').count();
     expect(cartItems).toBe(1);
@@ -63,9 +65,10 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
 
     // Add product to cart
     await page.click('text=Phones');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForSelector('.card-block', { state: 'visible' });
     await page.click('.card-title a >> nth=0');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForSelector('.btn.btn-success.btn-lg', { state: 'visible' });
 
     // Add to cart with proper dialog handling
@@ -73,11 +76,12 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
       page.waitForEvent('dialog').then(dialog => dialog.accept()),
       page.click('text=Add to cart'),
     ]);
-    await page.waitForLoadState('networkidle');
+    // Wait a bit for cart update (dialog closes immediately)
+    await page.waitForTimeout(500);
 
     // Go to cart and proceed to checkout
     await page.click('#cartur');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForSelector('tbody', { state: 'visible' });
     await page.click('button.btn-success');
 
