@@ -18,13 +18,15 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
 
     // Test Phones category
     await page.click('text=Phones');
-    await page.waitForSelector('.card-block');
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('.card-block', { state: 'visible' });
     const phoneProducts = await page.locator('.card-block').count();
     expect(phoneProducts).toBeGreaterThan(0);
 
     // Test Laptops category
     await page.click('text=Laptops');
-    await page.waitForSelector('.card-block');
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('.card-block', { state: 'visible' });
     const laptopProducts = await page.locator('.card-block').count();
     expect(laptopProducts).toBeGreaterThan(0);
   });
@@ -35,18 +37,22 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
 
     // Navigate to first product
     await page.click('text=Phones');
-    await page.waitForSelector('.card-block');
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('.card-block', { state: 'visible' });
     await page.click('.card-title a >> nth=0');
-    await page.waitForSelector('.btn.btn-success.btn-lg');
+    await page.waitForSelector('.btn.btn-success.btn-lg', { state: 'visible' });
 
-    // Add to cart
-    page.once('dialog', dialog => dialog.accept());
-    await page.click('text=Add to cart');
-    await page.waitForTimeout(1000);
+    // Add to cart with proper dialog handling
+    await Promise.all([
+      page.waitForEvent('dialog').then(dialog => dialog.accept()),
+      page.click('text=Add to cart'),
+    ]);
+    await page.waitForLoadState('networkidle');
 
     // Verify product was added by checking cart
     await page.click('#cartur');
-    await page.waitForSelector('tbody');
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('tbody', { state: 'visible' });
     const cartItems = await page.locator('tbody tr').count();
     expect(cartItems).toBe(1);
   });
@@ -57,20 +63,26 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
 
     // Add product to cart
     await page.click('text=Phones');
-    await page.waitForSelector('.card-block');
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('.card-block', { state: 'visible' });
     await page.click('.card-title a >> nth=0');
-    await page.waitForSelector('.btn.btn-success.btn-lg');
-    page.once('dialog', dialog => dialog.accept());
-    await page.click('text=Add to cart');
-    await page.waitForTimeout(1000);
+    await page.waitForSelector('.btn.btn-success.btn-lg', { state: 'visible' });
+
+    // Add to cart with proper dialog handling
+    await Promise.all([
+      page.waitForEvent('dialog').then(dialog => dialog.accept()),
+      page.click('text=Add to cart'),
+    ]);
+    await page.waitForLoadState('networkidle');
 
     // Go to cart and proceed to checkout
     await page.click('#cartur');
-    await page.waitForSelector('tbody');
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('tbody', { state: 'visible' });
     await page.click('button.btn-success');
 
     // Verify checkout modal opens
-    await expect(page.locator('#orderModal')).toBeVisible();
+    await expect(page.locator('#orderModal')).toBeVisible({ timeout: 10000 });
   });
 
   test('should open user authentication modals @smoke', async ({ page }) => {
@@ -81,10 +93,10 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
     await page.click('#signin2');
     await expect(page.locator('#signInModal')).toBeVisible();
     await page.click('#signInModal .close');
-    await page.waitForTimeout(500);
+    await expect(page.locator('#signInModal')).toBeHidden();
 
     // Test login modal - use ID selector for navigation link
     await page.click('#login2');
-    await expect(page.locator('#logInModal')).toBeVisible();
+    await expect(page.locator('#logInModal')).toBeVisible({ timeout: 10000 });
   });
 });
