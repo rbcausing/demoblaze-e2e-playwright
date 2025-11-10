@@ -95,8 +95,9 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
 
     // Test sign up modal - use ID selector for navigation link
     await page.click('#signin2');
-    await expect(page.locator('#signInModal')).toBeVisible();
+    await expect(page.locator('#signInModal')).toBeVisible({ timeout: 5000 });
     await page.click('#signInModal .close');
+    await page.waitForTimeout(300); // Wait for modal close animation
     await expect(page.locator('#signInModal')).toBeHidden();
 
     // Test login modal - use ID selector for navigation link
