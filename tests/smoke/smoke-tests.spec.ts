@@ -93,21 +93,27 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
 
-    // Wait a moment for any auto-opening modals to appear
-    await page.waitForTimeout(1000);
+    // Forcefully close/hide any auto-opening modals and backdrops
+    await page.evaluate(() => {
+      // Close any visible modals
+      const modals = document.querySelectorAll('.modal.show, .modal.fade.show');
+      modals.forEach(modal => {
+        (modal as HTMLElement).style.display = 'none';
+        modal.classList.remove('show');
+      });
 
-    // Close About modal if it's visible
-    const aboutModal = page.locator('#videoModal');
-    try {
-      await aboutModal.waitFor({ state: 'visible', timeout: 2000 });
-      // Modal is visible, close it
-      await page.click('#videoModal .close');
-      await aboutModal.waitFor({ state: 'hidden', timeout: 3000 });
-      // Wait extra time for animation and backdrop to fully clear
-      await page.waitForTimeout(1000);
-    } catch {
-      // Modal didn't appear or is already hidden, continue
-    }
+      // Remove any modal backdrops
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => backdrop.remove());
+
+      // Ensure body doesn't have modal-open class
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    });
+
+    // Wait a moment to ensure clean state
+    await page.waitForTimeout(500);
 
     // Test sign up modal - use ID selector for navigation link
     await page.click('#signin2');
