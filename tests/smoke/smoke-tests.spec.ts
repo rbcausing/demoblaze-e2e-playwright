@@ -93,11 +93,18 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
 
+    // Close About modal if it auto-opened
+    const aboutModal = page.locator('#videoModal');
+    if (await aboutModal.isVisible()) {
+      await page.click('#videoModal .close');
+      await expect(aboutModal).toBeHidden();
+    }
+
     // Test sign up modal - use ID selector for navigation link
     await page.click('#signin2');
     await expect(page.locator('#signInModal')).toBeVisible({ timeout: 5000 });
     await page.click('#signInModal .close');
-    await page.waitForTimeout(300); // Wait for modal close animation
+    await page.waitForTimeout(500); // Increased timeout for modal close animation
     await expect(page.locator('#signInModal')).toBeHidden();
 
     // Test login modal - use ID selector for navigation link
