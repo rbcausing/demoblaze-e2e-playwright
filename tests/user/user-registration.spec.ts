@@ -5,11 +5,11 @@ test.describe('Demoblaze User Authentication', () => {
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
 
-    // Click sign up link
-    await page.click('text=Sign up');
+    // Click sign up link - use ID selector for reliability
+    await page.click('#signin2');
 
     // Verify sign up modal opens
-    await expect(page.locator('#signInModal')).toBeVisible();
+    await expect(page.locator('#signInModal')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#signInModal >> text=Sign up')).toBeVisible();
   });
 
@@ -18,7 +18,7 @@ test.describe('Demoblaze User Authentication', () => {
     await page.waitForSelector('text=Home');
 
     // Click log in link
-    await page.click('text=Log in');
+    await page.click('#login2');
 
     // Verify login modal opens
     await expect(page.locator('#logInModal')).toBeVisible();
@@ -34,7 +34,7 @@ test.describe('Demoblaze User Authentication', () => {
     await page.waitForSelector('text=Home');
 
     // Open sign up modal
-    await page.click('text=Sign up');
+    await page.click('#signin2');
     await page.waitForSelector('#signInModal');
 
     // Fill registration form
@@ -61,7 +61,7 @@ test.describe('Demoblaze User Authentication', () => {
     await page.waitForSelector('text=Home');
 
     // Register user
-    await page.click('text=Sign up');
+    await page.click('#signin2');
     await page.waitForSelector('#signInModal');
     await page.fill('#sign-username', username);
     await page.fill('#sign-password', password);
@@ -71,7 +71,7 @@ test.describe('Demoblaze User Authentication', () => {
     await page.waitForTimeout(2000);
 
     // Now login with the same credentials
-    await page.click('text=Log in');
+    await page.click('#login2');
     await page.waitForSelector('#logInModal');
     await page.fill('#loginusername', username);
     await page.fill('#loginpassword', password);
@@ -91,7 +91,7 @@ test.describe('Demoblaze User Authentication', () => {
     await page.waitForSelector('text=Home');
 
     // Register first time
-    await page.click('text=Sign up');
+    await page.click('#signin2');
     await page.waitForSelector('#signInModal');
     await page.fill('#sign-username', username);
     await page.fill('#sign-password', password);
@@ -101,7 +101,7 @@ test.describe('Demoblaze User Authentication', () => {
     await page.waitForTimeout(2000);
 
     // Try to register again with same username
-    await page.click('text=Sign up');
+    await page.click('#signin2');
     await page.waitForSelector('#signInModal');
     await page.fill('#sign-username', username);
     await page.fill('#sign-password', password);
@@ -120,7 +120,7 @@ test.describe('Demoblaze User Authentication', () => {
     await page.waitForSelector('text=Home');
 
     // Open login modal
-    await page.click('text=Log in');
+    await page.click('#login2');
     await page.waitForSelector('#logInModal');
 
     // Fill with invalid credentials
@@ -141,7 +141,7 @@ test.describe('Demoblaze User Authentication', () => {
     await page.waitForSelector('text=Home');
 
     // Open sign up modal
-    await page.click('text=Sign up');
+    await page.click('#signin2');
     await page.waitForSelector('#signInModal');
 
     // Close modal
@@ -162,7 +162,7 @@ test.describe('Demoblaze User Authentication', () => {
     await page.waitForSelector('text=Home');
 
     // Register
-    await page.click('text=Sign up');
+    await page.click('#signin2');
     await page.waitForSelector('#signInModal');
     await page.fill('#sign-username', username);
     await page.fill('#sign-password', password);
@@ -171,7 +171,7 @@ test.describe('Demoblaze User Authentication', () => {
     await page.waitForTimeout(2000);
 
     // Login
-    await page.click('text=Log in');
+    await page.click('#login2');
     await page.waitForSelector('#logInModal');
     await page.fill('#loginusername', username);
     await page.fill('#loginpassword', password);

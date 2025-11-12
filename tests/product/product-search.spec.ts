@@ -8,7 +8,8 @@ test.describe('Demoblaze Product Navigation', () => {
 
   test('should navigate to Phones category @smoke', async ({ page }) => {
     await page.click('text=Phones');
-    await page.waitForSelector('.card-block');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.card-block', { state: 'visible' });
 
     // Verify we're on phones page
     const productCards = await page.locator('.card-block').count();
