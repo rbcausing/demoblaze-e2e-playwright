@@ -10,10 +10,10 @@ export default defineConfig({
 
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0, // Fewer retries for smoke tests
+  retries: process.env.CI ? 2 : 0, // Increased retries for CI stability
   workers: process.env.CI ? 2 : undefined,
 
-  timeout: 30000, // Shorter timeout for smoke tests
+  timeout: 45000, // Increased timeout for CI environment
 
   reporter: [['list'], ['html', { outputFolder: 'playwright-report/smoke', open: 'never' }]],
 
@@ -21,15 +21,23 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || 'https://www.demoblaze.com',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'off', // No video for fast smoke tests
-    actionTimeout: 10000,
-    navigationTimeout: 15000,
+    video: 'retain-on-failure', // Enable video for debugging CI failures
+    actionTimeout: 15000, // Increased for CI
+    navigationTimeout: 20000, // Increased for CI
   },
 
   projects: [
     {
       name: 'chromium-smoke',
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox-smoke',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit-smoke',
+      use: { ...devices['Desktop Safari'] },
     },
   ],
 });

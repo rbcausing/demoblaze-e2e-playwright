@@ -12,7 +12,8 @@ test.describe('Demoblaze Shopping Cart - Add to Cart', () => {
 
     // Navigate to Phones category
     await page.click('text=Phones');
-    await page.waitForSelector('.card-block');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.card-block', { state: 'visible' });
 
     // Click on the first product (Samsung galaxy s6)
     await page.click('.card-title a >> nth=0');

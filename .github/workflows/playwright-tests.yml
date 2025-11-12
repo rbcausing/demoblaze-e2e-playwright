@@ -53,7 +53,7 @@ jobs:
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: 🧪 Run smoke tests
-        run: npx playwright test --project=${{ matrix.browser }} --grep="@smoke" --reporter=html --reporter=json --reporter=junit
+        run: npx playwright test --config=playwright-smoke.config.ts --project=${{ matrix.browser }}-smoke --reporter=html --reporter=json --reporter=junit
         env:
           CI: true
           SKIP_MOBILE: true
