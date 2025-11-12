@@ -15,7 +15,14 @@ export default defineConfig({
 
   timeout: 45000, // Increased timeout for CI environment
 
-  reporter: [['list'], ['html', { outputFolder: 'playwright-report/smoke', open: 'never' }]],
+  reporter: process.env.CI
+    ? [
+        ['list'],
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+        ['json', { outputFile: 'test-results/smoke-results.json' }],
+        ['junit', { outputFile: 'test-results/smoke-results.xml' }],
+      ]
+    : [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
 
   use: {
     baseURL: process.env.BASE_URL || 'https://www.demoblaze.com',
