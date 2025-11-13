@@ -31,7 +31,6 @@ We want to ensure that **only high-quality, tested code** reaches your `main` br
                  ↓
 ┌─────────────────────────────────────────┐
 │  Layer 3: Automated Status Checks       │
-│  • Cursor Bugbot (AI Review)           │
 │  • Code Quality Workflow                │
 │  • E2E Test Suite                       │
 └────────────────┬────────────────────────┘
@@ -100,7 +99,6 @@ A **Pull Request** is a formal proposal to merge your branch into another branch
 | `🔥 Smoke Tests (chromium)` | Runs critical E2E tests on Chrome | ~2-3 minutes |
 | `🔥 Smoke Tests (firefox)` | Runs critical E2E tests on Firefox | ~2-3 minutes |
 | `🎯 Full Test Suite (chromium)` | Runs all E2E tests on Chrome | ~30 minutes |
-| `Cursor Bugbot` | AI-powered code review | ~1-2 minutes |
 
 **How they work:**
 ```
@@ -117,7 +115,6 @@ PR Created → GitHub Actions triggered → Tests run → Report status
 ```
 ✅ Require Pull Request (no direct pushes)
 ✅ Require status checks to pass:
-   • Cursor Bugbot
    • 🔍 Lint & Validate  
    • 🔥 Smoke Tests (chromium)
 ✅ Block force pushes
@@ -157,7 +154,6 @@ git push origin feat/add-checkout-test
 # (Can be done via GitHub UI or CLI)
 
 # 6. Automated checks run automatically:
-#    - Cursor Bugbot reviews code
 #    - Code Quality workflow runs
 #    - E2E tests execute
 
@@ -178,7 +174,6 @@ git push origin feat/add-checkout-test
 **What you have:**
 - ✅ Pre-commit hooks (local validation)
 - ✅ GitHub Actions workflows (CI/CD)
-- ✅ Cursor Bugbot enabled
 
 **What we're adding:**
 - 🔧 Branch protection rules on `main`
@@ -238,7 +233,6 @@ Go to your repository:
 4. Click **"+ Add checks"**
 
 **Try searching for:**
-- `bugbot`
 - `lint`
 - `smoke`
 
@@ -248,14 +242,13 @@ Go to your repository:
 
 **Start with these essential checks:**
 ```
-✅ Cursor Bugbot
 ✅ 🔍 Lint & Validate
 ✅ 🔥 Smoke Tests (chromium)
 ```
 
-**Why these three?**
+**Why these two?**
 - Fast feedback (~3-5 minutes total)
-- Cover AI review + code quality + critical functionality
+- Cover code quality + critical functionality
 - Won't slow down your development
 
 **Don't require all checks** (especially failing ones or slow comprehensive tests)
@@ -284,9 +277,6 @@ Also enable:
 - [About Branch Protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
 - [About Status Checks](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/about-status-checks)
 
-### Cursor Bugbot
-- [Cursor Bugbot Documentation](https://docs.cursor.com/fr/bugbot)
-
 ---
 
 ## 🆘 Troubleshooting
@@ -303,7 +293,7 @@ Also enable:
 
 **Solution:**
 1. Don't add failing checks as required yet
-2. Focus on checks that pass (Code Quality, Bugbot)
+2. Focus on checks that pass (Code Quality)
 3. Investigate failing tests separately
 4. Once tests pass, add them as required
 
@@ -331,9 +321,8 @@ Status Checks → Reviews → Branch Protection → Merge to Main
 
 **Your protection layers:**
 1. 🔒 Pre-commit hooks (local)
-2. 🔒 Cursor Bugbot (AI review)
-3. 🔒 GitHub Actions (automated tests)
-4. 🔒 Branch protection rules (enforcement)
+2. 🔒 GitHub Actions (automated tests)
+3. 🔒 Branch protection rules (enforcement)
 
 **Next action:**
 Check if status checks are now visible in your branch protection settings!

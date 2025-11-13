@@ -21,8 +21,6 @@ GitHub uses **job names** from workflows as status check names, not workflow nam
 - `📱 Mobile Tests (mobile-chrome)`
 - `📱 Mobile Tests (Mobile Safari)`
 
-#### External Service
-- `Cursor Bugbot` (already configured)
 
 ## How to Add Status Checks
 
@@ -34,7 +32,6 @@ GitHub uses **job names** from workflows as status check names, not workflow nam
 ## Recommended Required Checks
 
 For optimal protection, require:
-- ✅ `Cursor Bugbot`
 - ✅ `🔍 Lint & Validate` (Code Quality)
 - ✅ `🔥 Smoke Tests (chromium)` (Fast feedback on critical tests)
 

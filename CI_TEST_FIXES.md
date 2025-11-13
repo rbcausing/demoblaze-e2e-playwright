@@ -146,3 +146,4 @@ await expect(page.locator('text=Home')).toBeVisible({ timeout: 10000 });
 
 These fixes address the root causes of CI test failures while maintaining test integrity and improving overall reliability. The tests are now more resilient to network conditions and timing variations common in CI environments.
 
+
