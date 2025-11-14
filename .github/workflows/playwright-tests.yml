@@ -168,10 +168,15 @@ jobs:
       - name: 🎭 Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit
 
+      - name: 🧪 List available mobile tests
+        run: npx playwright test --project="${{ matrix.device }}" --grep="@smoke" --list
+        continue-on-error: true
+        
       - name: 🧪 Run mobile tests
         run: npx playwright test --project="${{ matrix.device }}" --grep="@smoke" --reporter=html --reporter=json --reporter=junit
         env:
           CI: true
+        continue-on-error: false
 
       - name: 📊 Upload test results
         if: always()
