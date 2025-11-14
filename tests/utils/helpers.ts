@@ -1,6 +1,7 @@
 /**
  * Utility functions for e-commerce testing
  */
+import { Page } from '@playwright/test';
 
 export class TestHelpers {
   /**
@@ -91,5 +92,48 @@ export class TestHelpers {
    */
   static calculateDiscount(originalPrice: number, discountPercent: number): number {
     return originalPrice * (discountPercent / 100);
+  }
+
+  /**
+   * Ensure mobile navigation menu is expanded if needed
+   * This handles Bootstrap's responsive navbar collapse on mobile devices
+   */
+  static async ensureMobileMenuExpanded(page: Page): Promise<void> {
+    try {
+      // Check if navbar toggler (hamburger menu) is visible (indicates mobile view)
+      const togglerVisible = await page
+        .locator('.navbar-toggler')
+        .isVisible({ timeout: 1000 })
+        .catch(() => false);
+
+      if (togglerVisible) {
+        // Check if menu is collapsed (navbar-collapse doesn't have 'show' class)
+        const menuCollapsed = await page
+          .locator('.navbar-collapse')
+          .getAttribute('class')
+          .then(
+            (classes: string | null) => !classes?.includes('show'),
+            () => true // If we can't get the class, assume collapsed
+          );
+
+        if (menuCollapsed) {
+          // Click hamburger menu to expand
+          await page.click('.navbar-toggler');
+          // Wait for menu to expand (Bootstrap animation)
+          await page.waitForTimeout(500);
+          // Ensure menu is now expanded
+          await page
+            .locator('.navbar-collapse.show')
+            .waitFor({ timeout: 3000 })
+            .catch(() => {
+              // If show class isn't added, wait a bit more for animation
+              return page.waitForTimeout(500);
+            });
+        }
+      }
+    } catch (error) {
+      // If mobile menu handling fails, continue anyway (might be desktop)
+      // This ensures tests work on both desktop and mobile
+    }
   }
 }

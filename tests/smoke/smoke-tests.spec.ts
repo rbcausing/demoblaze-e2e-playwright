@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures/testFixtures';
+import { TestHelpers } from '../utils/helpers';
 
 test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
   test('should load homepage successfully @smoke', async ({ page }) => {
@@ -111,6 +112,9 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
       // No auto-modal appeared, continue
     }
 
+    // Ensure mobile menu is expanded if needed
+    await TestHelpers.ensureMobileMenuExpanded(page);
+
     // Test sign up modal with increased timeout
     await page.click('#signin2');
     await expect(page.locator('#signInModal')).toBeVisible({ timeout: 10000 });
@@ -121,6 +125,9 @@ test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
 
     // Ensure modal backdrop is gone with increased timeout
     await expect(page.locator('.modal-backdrop')).toHaveCount(0, { timeout: 5000 });
+
+    // Ensure mobile menu is expanded again (menu might have collapsed after modal closed)
+    await TestHelpers.ensureMobileMenuExpanded(page);
 
     // Test login modal with increased timeout
     await page.click('#login2');
