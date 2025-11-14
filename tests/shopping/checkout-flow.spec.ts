@@ -2,24 +2,31 @@ import { test, expect } from '../fixtures/testFixtures';
 
 test.describe('Demoblaze Checkout Flow', () => {
   test.beforeEach(async ({ page }) => {
-    // Add items to cart before checkout tests
-    await page.goto('https://www.demoblaze.com/');
-    await page.waitForSelector('text=Home');
+    // Add items to cart before checkout tests with better waits
+    await page.goto('https://www.demoblaze.com/', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('text=Home', { timeout: 10000 });
 
-    // Add product to cart
+    // Add product to cart with proper error handling
     await page.click('text=Phones');
-    await page.waitForSelector('.card-block');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.card-block', { timeout: 15000 });
     await page.click('.card-title a >> nth=0');
-    await page.waitForSelector('.btn.btn-success.btn-lg');
-    page.once('dialog', dialog => dialog.accept());
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 15000 });
+
+    // Handle dialog properly
+    const dialogPromise = page.waitForEvent('dialog', { timeout: 10000 });
     await page.click('text=Add to cart');
+    const dialog = await dialogPromise;
+    await dialog.accept();
     await page.waitForTimeout(1000);
 
-    // Go to cart and proceed to checkout
+    // Go to cart and proceed to checkout with better waits
     await page.click('#cartur');
-    await page.waitForSelector('tbody');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('tbody', { timeout: 15000 });
     await page.click('button.btn-success');
-    await page.waitForSelector('#orderModal');
+    await page.waitForSelector('#orderModal', { timeout: 15000 });
   });
 
   test('should complete full checkout process @smoke', async ({ page }) => {

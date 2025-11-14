@@ -180,12 +180,6 @@ git commit -m "fix: resolve test failures"
 git push
 ```
 
-### Step 4: Enable Cursor Bugbot
-This will catch issues BEFORE they reach CI:
-1. Go to [cursor.com/dashboard](https://cursor.com/dashboard)
-2. Enable Bugbot for this repository
-3. It will review your PRs and catch issues early
-
 ## 📋 Debugging Checklist
 
 - [ ] Check GitHub Actions logs for exact error
@@ -195,7 +189,6 @@ This will catch issues BEFORE they reach CI:
 - [ ] Ensure `package-lock.json` is committed
 - [ ] Verify Playwright version is consistent
 - [ ] Check for recent changes that might cause issues
-- [ ] Enable Cursor Bugbot to prevent future issues
 
 ## 🔍 Advanced Debugging
 
@@ -225,33 +218,20 @@ page.on('response', response =>
 );
 ```
 
-## 🚀 Prevention (With Cursor Bugbot)
+## 🚀 Prevention Best Practices
 
-Once you enable Cursor Bugbot:
-
-### What It Will Catch
-- ✅ Incorrect selectors before they fail in CI
-- ✅ Missing error handling in tests
-- ✅ Race conditions and timing issues
-- ✅ Best practice violations
-- ✅ Logical errors your linters miss
-
-### Workflow Changes
-```
-Old: Write → Push → CI Fails → Debug → Fix → Repeat
-                     ↑
-                Time wasted!
-
-New: Write → PR → Bugbot Reviews → Fix → Merge → CI Passes ✅
-                     ↑
-              Caught early!
-```
+To prevent CI failures:
+- ✅ Test locally before pushing
+- ✅ Use proper selectors and waits
+- ✅ Handle errors gracefully
+- ✅ Follow Playwright best practices
+- ✅ Run smoke tests before creating PRs
 
 ## 📊 Next Steps
 
 1. **Immediate**: Check your latest GitHub Actions logs to see the exact error
 2. **Short-term**: Fix the failing tests based on the error
-3. **Long-term**: Enable Cursor Bugbot to prevent these issues
+3. **Long-term**: Test locally and follow best practices to prevent issues
 
 **Need help with the actual error?** Share the error message from GitHub Actions, and I can provide specific fixes!
 
@@ -259,7 +239,5 @@ New: Write → PR → Bugbot Reviews → Fix → Merge → CI Passes ✅
 
 **Quick Links**:
 - [Your GitHub Actions](https://github.com/rbcausing/demoblaze-e2e-playwright/actions)
-- [Enable Cursor Bugbot](https://cursor.com/dashboard)
-- [Full Integration Guide](./CURSOR_BUGBOT_INTEGRATION.md)
-- [Quick Start Guide](./QUICK_START_BUGBOT.md)
+- [Playwright Documentation](https://playwright.dev)
 

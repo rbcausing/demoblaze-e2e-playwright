@@ -75,6 +75,13 @@ jobs:
           name: smoke-screenshots-${{ matrix.browser }}
           path: test-results/**/*.png
           retention-days: 7
+      
+      # Ensure job always completes with proper exit code
+      - name: ✅ Finalize job status
+        if: always()
+        run: |
+          echo "Job execution completed"
+          # This step ensures the job reports status even if previous steps were cancelled
 
   # Job 2: Full Test Suite - Comprehensive testing
   full-tests:

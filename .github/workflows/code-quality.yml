@@ -1,4 +1,4 @@
-name: 🤖 Code Quality (Bugbot)
+name: 🤖 Code Quality
 
 on:
   push:
@@ -57,7 +57,7 @@ jobs:
       - name: 📊 Summary
         if: always()
         run: |
-          echo "## 🤖 Bugbot Code Quality Check" >> $GITHUB_STEP_SUMMARY
+          echo "## 🤖 Code Quality Check" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ All quality checks completed!" >> $GITHUB_STEP_SUMMARY
 

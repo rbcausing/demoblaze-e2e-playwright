@@ -36,7 +36,6 @@ Your PR has triggered all workflows! Here's what happened:
 
    Type in search box | What You Should See
    ------------------|--------------------
-   `bugbot` | `Cursor Bugbot` or `Cursor Bugbot / Review`
    `lint` | `🔍 Lint & Validate`
    `smoke` | `🔥 Smoke Tests (chromium)`, `🔥 Smoke Tests (firefox)`, etc.
 
@@ -64,27 +63,23 @@ Based on your workflows, these checks should now be available:
 - `📱 Mobile Tests (mobile-chrome)`
 - `📱 Mobile Tests (Mobile Safari)`
 
-### From Cursor Bugbot ✅
-- `Cursor Bugbot` or `Cursor Bugbot / Review`
-
 ---
 
 ## ⚡ Recommended Required Checks
 
-**Start with these 3 (should all be passing):**
+**Start with these 2 (should all be passing):**
 
 ```
-✅ Cursor Bugbot             (~1-2 min)
 ✅ 🔍 Lint & Validate         (~30 sec)  
 ✅ 🔥 Smoke Tests (chromium)  (~2-3 min)
 ```
 
-**Total time for PR merge:** ~4-6 minutes
+**Total time for PR merge:** ~3-4 minutes
 
-### Why These Three?
+### Why These Two?
 
 1. **Fast feedback** - Total time is reasonable
-2. **Good coverage** - AI review + code quality + critical tests
+2. **Good coverage** - Code quality + critical tests
 3. **Likely passing** - These checks succeeded on your PR
 4. **Chromium only** - Most users use Chrome-based browsers
 
@@ -120,7 +115,7 @@ Based on your workflows, these checks should now be available:
    - Verify checks have completed (not still running)
 
 4. **Search with different keywords**
-   - Try: `lint`, `smoke`, `test`, `bugbot`
+   - Try: `lint`, `smoke`, `test`
    - The search is case-insensitive
 
 5. **Check the exact job names**
@@ -140,7 +135,6 @@ After clicking "+ Add checks", you should see something like:
 │ Search for checks in the last week...       │
 │ [Search box]                                 │
 ├─────────────────────────────────────────────┤
-│ ☑ Cursor Bugbot                             │ ← Already selected (you added this)
 │ ☐ 🔍 Lint & Validate                        │ ← Add this
 │ ☐ 🔥 Smoke Tests (chromium)                 │ ← Add this
 │ ☐ 🔥 Smoke Tests (firefox)                  │
@@ -164,7 +158,6 @@ Once you can see the checks, configure these settings:
 ### Required Status Checks
 ```
 ☑ Require status checks to pass before merging
-  ├─ ☑ Cursor Bugbot
   ├─ ☑ 🔍 Lint & Validate
   └─ ☑ 🔥 Smoke Tests (chromium)
 ```
