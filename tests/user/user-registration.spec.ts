@@ -1,9 +1,13 @@
 import { test, expect } from '../fixtures/testFixtures';
+import { TestHelpers } from '../utils/helpers';
 
 test.describe('Demoblaze User Authentication', () => {
   test('should open sign up modal @smoke', async ({ page }) => {
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
+
+    // Ensure mobile menu is expanded if needed (handles mobile navigation)
+    await TestHelpers.ensureMobileMenuExpanded(page);
 
     // Click sign up link - use ID selector for reliability
     await page.click('#signin2');
@@ -16,6 +20,9 @@ test.describe('Demoblaze User Authentication', () => {
   test('should open login modal', async ({ page }) => {
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
+
+    // Ensure mobile menu is expanded if needed
+    await TestHelpers.ensureMobileMenuExpanded(page);
 
     // Click log in link
     await page.click('#login2');
@@ -32,6 +39,9 @@ test.describe('Demoblaze User Authentication', () => {
 
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
+
+    // Ensure mobile menu is expanded if needed
+    await TestHelpers.ensureMobileMenuExpanded(page);
 
     // Open sign up modal
     await page.click('#signin2');
@@ -59,6 +69,9 @@ test.describe('Demoblaze User Authentication', () => {
 
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
+
+    // Ensure mobile menu is expanded if needed
+    await TestHelpers.ensureMobileMenuExpanded(page);
 
     // Register user
     await page.click('#signin2');
@@ -90,6 +103,9 @@ test.describe('Demoblaze User Authentication', () => {
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
 
+    // Ensure mobile menu is expanded if needed
+    await TestHelpers.ensureMobileMenuExpanded(page);
+
     // Register first time
     await page.click('#signin2');
     await page.waitForSelector('#signInModal');
@@ -119,6 +135,9 @@ test.describe('Demoblaze User Authentication', () => {
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
 
+    // Ensure mobile menu is expanded if needed
+    await TestHelpers.ensureMobileMenuExpanded(page);
+
     // Open login modal
     await page.click('#login2');
     await page.waitForSelector('#logInModal');
@@ -139,6 +158,9 @@ test.describe('Demoblaze User Authentication', () => {
   test('should close modals correctly', async ({ page }) => {
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
+
+    // Ensure mobile menu is expanded if needed
+    await TestHelpers.ensureMobileMenuExpanded(page);
 
     // Open sign up modal
     await page.click('#signin2');
@@ -161,6 +183,9 @@ test.describe('Demoblaze User Authentication', () => {
     await page.goto('https://www.demoblaze.com/');
     await page.waitForSelector('text=Home');
 
+    // Ensure mobile menu is expanded if needed
+    await TestHelpers.ensureMobileMenuExpanded(page);
+
     // Register
     await page.click('#signin2');
     await page.waitForSelector('#signInModal');
@@ -181,11 +206,23 @@ test.describe('Demoblaze User Authentication', () => {
     // Verify logged in
     await expect(page.locator(`#nameofuser`)).toContainText(`Welcome ${username}`);
 
+    // Ensure mobile menu is expanded before logout (logout button might be in menu)
+    await TestHelpers.ensureMobileMenuExpanded(page);
+
     // Logout
     await page.click('#logout2');
     await page.waitForTimeout(1000);
 
-    // Verify logged out (Log in link should be visible again)
-    await expect(page.locator('text=Log in')).toBeVisible();
+    // Verify logged out - use a more robust selector that works on both desktop and mobile
+    // On mobile, "Log in" link might be in collapsed menu, so check existence rather than visibility
+    // Or expand menu first, then check visibility
+    await TestHelpers.ensureMobileMenuExpanded(page);
+
+    // Check if "Log in" link exists and is visible (after menu expansion if needed)
+    const loginLink = page.locator('text=Log in').first();
+    await expect(loginLink).toBeVisible({ timeout: 5000 });
+
+    // Alternative: Check that #nameofuser is no longer visible (more reliable)
+    await expect(page.locator('#nameofuser')).not.toBeVisible();
   });
 });

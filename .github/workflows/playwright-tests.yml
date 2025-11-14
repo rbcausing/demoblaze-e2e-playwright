@@ -67,6 +67,7 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+          if-no-files-found: ignore  # Don't fail if no artifacts generated
 
       - name: 📸 Upload screenshots on failure
         if: failure()
@@ -126,6 +127,7 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 14
+          if-no-files-found: ignore  # Don't fail if no artifacts generated
 
       - name: 📸 Upload screenshots and videos
         if: always()
@@ -136,6 +138,7 @@ jobs:
             test-results/**/*.png
             test-results/**/*.webm
           retention-days: 14
+          if-no-files-found: ignore  # Don't fail if no artifacts generated
 
   # Job 3: Mobile Tests - Mobile device testing
   mobile-tests:
@@ -165,10 +168,15 @@ jobs:
       - name: 🎭 Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit
 
+      - name: 🧪 List available mobile tests
+        run: npx playwright test --project="${{ matrix.device }}" --grep="@smoke" --list
+        continue-on-error: true
+        
       - name: 🧪 Run mobile tests
         run: npx playwright test --project="${{ matrix.device }}" --grep="@smoke" --reporter=html --reporter=json --reporter=junit
         env:
           CI: true
+        continue-on-error: false
 
       - name: 📊 Upload test results
         if: always()
@@ -179,6 +187,7 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+          if-no-files-found: ignore  # Don't fail if no artifacts generated
 
   # Job 4: Regression Tests - Comprehensive testing with retries
   regression-tests:
