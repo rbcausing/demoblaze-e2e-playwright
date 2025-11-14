@@ -1,10 +1,13 @@
 name: Demoblaze E2E Tests (Basic)
 
+# DISABLED: This workflow is disabled to prevent conflicts with playwright-tests.yml
+# The comprehensive workflow (playwright-tests.yml) handles all PR checks
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  workflow_dispatch:  # Only allow manual runs
+  # push:
+  #   branches: [ main, master ]
+  # pull_request:
+  #   branches: [ main, master ]
 
 jobs:
   smoke-tests:
