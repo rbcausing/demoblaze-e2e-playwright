@@ -66,7 +66,7 @@ test.describe('Demoblaze - Laptops Luxury Checkout Flow', () => {
     const checkout = new CheckoutPage(page);
 
     // Set longer timeout for this complex test
-    test.setTimeout(60000);
+    test.setTimeout(45000);
 
     await home.navigate();
     await home.selectCategory('Laptops');

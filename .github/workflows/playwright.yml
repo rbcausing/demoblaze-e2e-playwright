@@ -33,9 +33,10 @@ jobs:
             ${{ runner.os }}-playwright-
 
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx playwright test --grep @smoke
         env:
           BASE_URL: https://www.demoblaze.com
+          CI: true
 
       - name: Upload test results
         if: always()

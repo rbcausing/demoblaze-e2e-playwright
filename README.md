@@ -221,12 +221,15 @@ test.describe('Authenticated User', () => {
 
 Key settings in `playwright.config.ts`:
 
-- **Test Directory**: `./tests/specs`
+- **Test Directory**: `./tests` (all subdirectories)
 - **Base URL**: `https://www.demoblaze.com`
 - **Trace**: Collected on first retry
 - **Video**: Recorded on failure
-- **Retries**: 2 retries in CI, 0 locally
-- **Browsers**: Chromium, Firefox, WebKit, Mobile Chrome, Mobile Safari
+- **Retries**: 0 (fail fast for genuine issues)
+- **CI Browsers**: Chromium only (fast)
+- **Local Browsers**: Chromium, Firefox, WebKit
+- **Timeouts**: 30s test, 10s action, 15s navigation
+- **Workers**: 4 parallel in CI
 
 ### Environment Variables
 
@@ -234,7 +237,10 @@ Key settings in `playwright.config.ts`:
 # Override base URL
 BASE_URL=https://staging.demoblaze.com npm test
 
-# Skip mobile tests
+# Run all browsers in CI (not recommended - very slow)
+TEST_ALL_BROWSERS=true npm test
+
+# Skip mobile tests (mobile is skipped by default in CI)
 SKIP_MOBILE=true npm test
 ```
 
@@ -242,13 +248,31 @@ SKIP_MOBILE=true npm test
 
 ## 🔄 CI/CD Pipeline
 
-The GitHub Actions workflow (`.github/workflows/playwright.yml`) provides:
+The GitHub Actions workflow (`.github/workflows/playwright.yml`) is **optimized for speed**:
 
-- ✅ Automatic test execution on push and pull requests
-- ✅ Multi-browser testing (Chromium, Firefox, WebKit)
-- ✅ Browser caching for faster execution
+### ⚡ Performance Optimizations
+- ✅ **Smoke tests only** in CI (13 critical tests) - full suite runs locally
+- ✅ **Single browser** (Chromium) in CI - 67% faster than multi-browser
+- ✅ **4 parallel workers** - maximum parallelization
+- ✅ **Zero retries** - fails fast on genuine issues
+- ✅ **Reduced timeouts** - 30s test timeout, 10s action timeout
+- ✅ Browser caching for faster setup
 - ✅ Artifact uploads (reports + traces) on failure
 - ✅ Node 20 on Ubuntu-latest
+
+**Result**: CI completes in **~3-5 minutes** (down from 60+ minutes)
+
+### Running Full Suite
+```bash
+# Run all tests locally (59 tests × 3 browsers)
+npm test
+
+# Run only smoke tests (matches CI behavior)
+npm run test:smoke
+
+# Run all tests in Chromium only
+npm run test:chromium
+```
 
 View workflow status: [![Playwright Tests](https://github.com/rbcausing/demoblaze-e2e-playwright/actions/workflows/playwright.yml/badge.svg)](https://github.com/rbcausing/demoblaze-e2e-playwright/actions)
 
