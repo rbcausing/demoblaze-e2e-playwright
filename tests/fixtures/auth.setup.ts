@@ -28,17 +28,18 @@ setup('authenticate', async ({ page }) => {
 
   // Register new user
   await page.getByRole('link', { name: 'Sign up' }).click();
-  // Wait for modal to be visible with longer timeout for CI
-  await page.getByRole('dialog').waitFor({ state: 'visible', timeout: 15000 });
+  // Wait for sign-up modal to be visible with longer timeout for CI
+  const signupDialog = page.getByRole('dialog').filter({ hasText: /Sign up/i });
+  await signupDialog.waitFor({ state: 'visible', timeout: 15000 });
 
-  // Fill registration form
-  await page
+  // Fill registration form - scope to sign-up dialog
+  await signupDialog
     .getByLabel('Username', { exact: false })
-    .or(page.locator('#sign-username'))
+    .or(signupDialog.locator('#sign-username'))
     .fill(username);
-  await page
+  await signupDialog
     .getByLabel('Password', { exact: false })
-    .or(page.locator('#sign-password'))
+    .or(signupDialog.locator('#sign-password'))
     .fill(password);
 
   // Submit registration
@@ -47,27 +48,26 @@ setup('authenticate', async ({ page }) => {
     dialog.accept();
   });
 
-  await page.getByRole('button', { name: /Sign up|Register/i }).click();
-  // Wait for dialog to be handled
+  await signupDialog.getByRole('button', { name: /Sign up|Register/i }).click();
+  // Wait for dialog to be handled and sign-up modal to close
   await page.waitForLoadState('domcontentloaded');
+  // Ensure sign-up modal is closed before opening login
+  await signupDialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+    // Modal might already be closed, which is fine
+  });
 
   // Now login with the same credentials
   await page.getByRole('link', { name: 'Log in' }).click();
   // Wait for login modal to be visible with longer timeout for CI
-  await page.getByRole('dialog').waitFor({ state: 'visible', timeout: 15000 });
+  const loginDialog = page.getByRole('dialog').filter({ hasText: /Log in/i });
+  await loginDialog.waitFor({ state: 'visible', timeout: 15000 });
 
-  // Fill login form
-  await page
-    .getByLabel('Username', { exact: false })
-    .or(page.locator('#loginusername'))
-    .fill(username);
-  await page
-    .getByLabel('Password', { exact: false })
-    .or(page.locator('#loginpassword'))
-    .fill(password);
+  // Fill login form - scope to login dialog only to avoid matching sign-up fields
+  await loginDialog.locator('#loginusername').fill(username);
+  await loginDialog.locator('#loginpassword').fill(password);
 
-  // Submit login
-  await page.getByRole('button', { name: /Log in|Login/i }).click();
+  // Submit login - scope to login dialog
+  await loginDialog.getByRole('button', { name: /Log in|Login/i }).click();
   // Wait for login to complete - check for welcome message
   await page.waitForLoadState('domcontentloaded');
 
