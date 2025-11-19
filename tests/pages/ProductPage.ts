@@ -1,114 +1,66 @@
-import { Page, Locator } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
+/**
+ * Page Object Model for DemoBlaze Product Detail Page
+ */
 export class ProductPage extends BasePage {
-  readonly productTitle: Locator;
-  readonly productPrice: Locator;
-  readonly productDescription: Locator;
-  readonly productImages: Locator;
-  readonly sizeSelector: Locator;
-  readonly colorSelector: Locator;
-  readonly quantityInput: Locator;
-  readonly addToCartButton: Locator;
-  readonly buyNowButton: Locator;
-  readonly wishlistButton: Locator;
-  readonly reviewsSection: Locator;
-  readonly productRating: Locator;
-  readonly relatedProducts: Locator;
-  readonly breadcrumb: Locator;
-
   constructor(page: Page) {
     super(page);
-
-    // Demoblaze-specific selectors
-    this.productTitle = page.locator('h2.name');
-    this.productPrice = page.locator('h3.price-container');
-    this.productDescription = page.locator('#more-information p');
-    this.productImages = page.locator('#imgp img');
-    this.addToCartButton = page.locator('a.btn-success');
-
-    // Demoblaze doesn't have these features, but keep for compatibility
-    this.sizeSelector = page.locator('[data-testid="size-selector"]');
-    this.colorSelector = page.locator('[data-testid="color-selector"]');
-    this.quantityInput = page.locator('[data-testid="quantity-input"]');
-    this.buyNowButton = page.locator('[data-testid="buy-now-button"]');
-    this.wishlistButton = page.locator('[data-testid="wishlist-button"]');
-    this.reviewsSection = page.locator('[data-testid="reviews-section"]');
-    this.productRating = page.locator('[data-testid="product-rating"]');
-    this.relatedProducts = page.locator('[data-testid="related-products"]');
-    this.breadcrumb = page.locator('[data-testid="breadcrumb"]');
-  }
-
-  async goto(productId: string): Promise<void> {
-    // For Demoblaze, we navigate to the product page directly
-    await this.page.goto(`/prod.html?idp_=${productId}`);
-    await this.waitForPageLoad();
   }
 
   /**
-   * Navigate to a Demoblaze product by clicking on it from the category page
+   * Get product information (title and price)
+   * Note: DemoBlaze doesn't have data-testid attributes.
+   * Suggestion: Add data-testid="product-title" and data-testid="product-price" for better testability
    */
-  async navigateToDemoblazeProduct(): Promise<void> {
-    // This method assumes we're already on a category page
-    await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
+  async getProductInfo(): Promise<{ title: string; price: string }> {
+    // Product title is in h2 heading - use getByRole for heading
+    // Filter by visible heading that's not in navigation
+    const titleElement = this.page
+      .getByRole('heading', { level: 2 })
+      .filter({ hasNotText: /Home|Contact|About|Cart|Log|Sign/ });
+    await titleElement.waitFor({ state: 'visible', timeout: 15000 });
+    const title = (await titleElement.textContent()) || '';
+
+    // Price is in h3 heading - use getByRole for heading
+    const priceElement = this.page.getByRole('heading', { level: 3 }).filter({ hasText: '$' });
+    const price = (await priceElement.textContent()) || '';
+
+    return { title: title.trim(), price: price.trim() };
   }
 
-  async selectSize(_size: string): Promise<void> {
-    // Demoblaze doesn't have size selection
-    console.log('Size selection not available on Demoblaze');
-  }
-
-  async selectColor(_color: string): Promise<void> {
-    // Demoblaze doesn't have color selection
-    console.log('Color selection not available on Demoblaze');
-  }
-
-  async setQuantity(_quantity: number): Promise<void> {
-    // Demoblaze doesn't have quantity selection on product page
-    console.log('Quantity selection not available on Demoblaze product page');
-  }
-
+  /**
+   * Add product to cart
+   * Handles JavaScript dialog confirmation
+   */
   async addToCart(): Promise<void> {
-    await this.page.waitForSelector('a.btn-success', { state: 'visible', timeout: 15000 });
+    // Wait for Add to cart button to be visible
+    const addToCartButton = this.page.getByRole('link', { name: 'Add to cart' });
+    await addToCartButton.waitFor({ state: 'visible', timeout: 15000 });
 
     // Set up dialog handler before clicking
     const dialogPromise = this.page.waitForEvent('dialog', { timeout: 10000 });
-    await this.addToCartButton.click();
+    await addToCartButton.click();
     const dialog = await dialogPromise;
     await dialog.accept();
-    await this.page.waitForTimeout(1000);
+    // Wait for dialog to close
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
-  async buyNow(): Promise<void> {
-    // Demoblaze doesn't have buy now functionality
-    console.log('Buy now not available on Demoblaze');
-  }
-
-  async addToWishlist(): Promise<void> {
-    // Demoblaze doesn't have wishlist functionality
-    console.log('Wishlist not available on Demoblaze');
-  }
-
+  /**
+   * Get product title
+   */
   async getProductTitle(): Promise<string> {
-    return (await this.productTitle.textContent()) || '';
+    const info = await this.getProductInfo();
+    return info.title;
   }
 
+  /**
+   * Get product price
+   */
   async getProductPrice(): Promise<string> {
-    return (await this.productPrice.textContent()) || '';
-  }
-
-  async getProductRating(): Promise<string> {
-    // Demoblaze doesn't have ratings
-    return 'N/A';
-  }
-
-  async scrollToReviews(): Promise<void> {
-    // Demoblaze doesn't have reviews section
-    console.log('Reviews section not available on Demoblaze');
-  }
-
-  async clickRelatedProduct(_index: number): Promise<void> {
-    // Demoblaze doesn't have related products
-    console.log('Related products not available on Demoblaze');
+    const info = await this.getProductInfo();
+    return info.price;
   }
 }

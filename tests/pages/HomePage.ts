@@ -1,218 +1,264 @@
-import { Page, Locator } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
+/**
+ * Page Object Model for DemoBlaze Homepage
+ * Handles navigation, product browsing, and category selection
+ */
 export class HomePage extends BasePage {
-  readonly searchInput: Locator;
-  readonly searchButton: Locator;
-  readonly navigationMenu: Locator;
-  readonly featuredProducts: Locator;
-  readonly cartIcon: Locator;
-  readonly userAccountIcon: Locator;
-  readonly categoryLinks: Locator;
-  readonly banner: Locator;
-  readonly newsletterSignup: Locator;
-
-  // Demoblaze-specific navigation elements
-  readonly homeLink: Locator;
-  readonly contactLink: Locator;
-  readonly aboutUsLink: Locator;
-  readonly cartLink: Locator;
-  readonly logInLink: Locator;
-  readonly signUpLink: Locator;
-
-  // Demoblaze category navigation
-  readonly laptopsCategory: Locator;
-  readonly phonesCategory: Locator;
-  readonly monitorsCategory: Locator;
-
-  // Demoblaze product elements
-  readonly productCards: Locator;
-  readonly productTitles: Locator;
-  readonly productPrices: Locator;
-  readonly addToCartButton: Locator;
-
   constructor(page: Page) {
     super(page);
-
-    // Demoblaze navigation elements
-    this.homeLink = page.locator('text=Home');
-    this.contactLink = page.locator('text=Contact');
-    this.aboutUsLink = page.locator('text=About us');
-    this.cartLink = page.locator('#cartur');
-    this.logInLink = page.locator('text=Log in');
-    this.signUpLink = page.locator('text=Sign up');
-
-    // Demoblaze category navigation - using onclick handlers
-    this.laptopsCategory = page.locator('a[onclick="byCat(\'notebook\')"]');
-    this.phonesCategory = page.locator('a[onclick="byCat(\'phone\')"]');
-    this.monitorsCategory = page.locator('a[onclick="byCat(\'monitor\')"]');
-
-    // Demoblaze product elements
-    this.productCards = page.locator('.card');
-    this.productTitles = page.locator('.card-title a');
-    this.productPrices = page.locator('h5');
-    this.addToCartButton = page.locator('text=Add to cart');
-
-    // Keep generic selectors for backward compatibility (will be removed in future)
-    this.searchInput = page.locator('[data-testid="search-input"]');
-    this.searchButton = page.locator('[data-testid="search-button"]');
-    this.navigationMenu = page.locator('[data-testid="main-navigation"]');
-    this.featuredProducts = page.locator('[data-testid="featured-products"]');
-    this.cartIcon = page.locator('[data-testid="cart-icon"]');
-    this.userAccountIcon = page.locator('[data-testid="user-account-icon"]');
-    this.categoryLinks = page.locator('[data-testid="category-link"]');
-    this.banner = page.locator('[data-testid="hero-banner"]');
-    this.newsletterSignup = page.locator('[data-testid="newsletter-signup"]');
-  }
-
-  async goto(): Promise<void> {
-    await this.page.goto('/');
-    await this.waitForPageLoad();
   }
 
   /**
-   * Navigate to Demoblaze homepage with proper error handling
+   * Navigate to DemoBlaze homepage
    */
-  async navigateToDemoblaze(): Promise<void> {
-    try {
-      await this.page.goto('https://www.demoblaze.com/', {
-        waitUntil: 'domcontentloaded',
-        timeout: 30000,
-      });
-
-      // Wait for key elements to be visible
-      await this.page.waitForSelector('text=Home', { timeout: 10000 });
-    } catch (error) {
-      console.error('Navigation failed:', error);
-      throw error;
-    }
+  async navigate(): Promise<void> {
+    await this.page.goto('https://www.demoblaze.com/', {
+      waitUntil: 'domcontentloaded',
+    });
+    await this.waitForLoad();
+    // Wait for navigation to be visible
+    await this.page.getByRole('link', { name: 'Home' }).waitFor({ state: 'visible' });
   }
 
   /**
-   * Select a category using Demoblaze's category navigation
+   * Click on Home link
    */
-  async selectCategory(categoryName: string): Promise<void> {
-    const categoryLower = categoryName.toLowerCase();
-    if (categoryLower === 'laptops') {
-      await this.laptopsCategory.click();
-    } else if (categoryLower === 'phones') {
-      await this.phonesCategory.click();
-    } else if (categoryLower === 'monitors') {
-      await this.monitorsCategory.click();
-    } else {
-      throw new Error(`Unknown category: ${categoryName}`);
-    }
-
-    // Wait for the product container to load
-    await this.page.waitForSelector('.card-block', { state: 'visible', timeout: 15000 });
+  async clickHome(): Promise<void> {
+    await this.page.getByRole('link', { name: 'Home' }).click();
+    await this.waitForLoad();
   }
 
   /**
-   * Search for products using Demoblaze's category-based navigation
-   * Note: Demoblaze doesn't have a traditional search, so we navigate to categories
+   * Click on Contact link
    */
-  async searchForProduct(productName: string): Promise<void> {
-    // For Demoblaze, we'll navigate to the appropriate category based on product type
-    if (
-      productName.toLowerCase().includes('laptop') ||
-      productName.toLowerCase().includes('notebook')
-    ) {
-      await this.selectCategory('Laptops');
-    } else if (
-      productName.toLowerCase().includes('phone') ||
-      productName.toLowerCase().includes('mobile')
-    ) {
-      await this.selectCategory('Phones');
-    } else if (
-      productName.toLowerCase().includes('monitor') ||
-      productName.toLowerCase().includes('display')
-    ) {
-      await this.selectCategory('Monitors');
-    } else {
-      // Default to laptops if we can't determine category
-      await this.selectCategory('Laptops');
-    }
-  }
-
-  async clickCategory(categoryName: string): Promise<void> {
-    await this.selectCategory(categoryName);
-  }
-
-  async clickCartIcon(): Promise<void> {
-    await this.cartLink.click();
-  }
-
-  async clickUserAccountIcon(): Promise<void> {
-    await this.logInLink.click();
-  }
-
-  async getFeaturedProductsCount(): Promise<number> {
-    return await this.productCards.count();
+  async clickContact(): Promise<void> {
+    await this.page.getByRole('link', { name: 'Contact' }).click();
   }
 
   /**
-   * Add a product to cart by index
+   * Click on About us link
    */
-  async addProductToCartByIndex(index: number): Promise<void> {
-    await this.page.waitForSelector('.card-block', { state: 'visible', timeout: 15000 });
-    await this.page.locator('.card-block .card-title a').nth(index).click();
+  async clickAboutUs(): Promise<void> {
+    await this.page.getByRole('link', { name: 'About us' }).click();
+  }
 
-    // Wait for product page to load
-    await this.page.waitForSelector('a.btn-success', { state: 'visible', timeout: 15000 });
+  /**
+   * Click on Cart link
+   * Note: Using getByRole with 'Cart' text as DemoBlaze doesn't have data-testid
+   */
+  async clickCart(): Promise<void> {
+    await this.page.getByRole('link', { name: 'Cart' }).click();
+    await this.waitForLoad();
+  }
+
+  /**
+   * Click on Log in link
+   */
+  async clickLogIn(): Promise<void> {
+    await this.page.getByRole('link', { name: 'Log in' }).click();
+  }
+
+  /**
+   * Click on Sign up link
+   */
+  async clickSignUp(): Promise<void> {
+    await this.page.getByRole('link', { name: 'Sign up' }).click();
+  }
+
+  /**
+   * Select a product category
+   * @param category - Category name: 'Laptops', 'Phones', or 'Monitors'
+   */
+  async selectCategory(category: string): Promise<void> {
+    const categoryMap: Record<string, string> = {
+      Laptops: 'Laptops',
+      Phones: 'Phones',
+      Monitors: 'Monitors',
+    };
+
+    const categoryName = categoryMap[category] || category;
+    await this.page.getByRole('link', { name: categoryName }).click();
+    // Wait for products to load - look for product cards
+    await this.page.getByText('Add to cart').first().waitFor({ state: 'visible', timeout: 15000 });
+  }
+
+  /**
+   * Select Laptops category
+   */
+  async selectLaptopsCategory(): Promise<void> {
+    await this.selectCategory('Laptops');
+  }
+
+  /**
+   * Select Phones category
+   */
+  async selectPhonesCategory(): Promise<void> {
+    await this.selectCategory('Phones');
+  }
+
+  /**
+   * Select Monitors category
+   */
+  async selectMonitorsCategory(): Promise<void> {
+    await this.selectCategory('Monitors');
+  }
+
+  /**
+   * Click on the first product in the current category
+   */
+  async clickFirstProduct(): Promise<void> {
+    // Find the first product link by looking for product titles
+    // Products are in cards with links - use getByRole to find the first product link
+    const productLinks = this.page
+      .getByRole('link')
+      .filter({ hasText: /Samsung|Nokia|Sony|MacBook|Dell|ASUS|Apple|HP|Lenovo|Monitor/i });
+    await productLinks.first().click();
+    await this.waitForLoad();
+  }
+
+  /**
+   * Add the first product in the current category to cart
+   * Handles JavaScript dialog confirmation
+   */
+  async addFirstProductToCart(): Promise<void> {
+    await this.clickFirstProduct();
+    await this.addToCartFromProductPage();
+  }
+
+  /**
+   * Add product to cart from product detail page
+   * Handles JavaScript dialog confirmation
+   */
+  async addToCartFromProductPage(): Promise<void> {
+    // Wait for Add to cart button to be visible
+    const addToCartButton = this.page.getByRole('link', { name: 'Add to cart' });
+    await addToCartButton.waitFor({ state: 'visible', timeout: 15000 });
 
     // Set up dialog handler before clicking
     const dialogPromise = this.page.waitForEvent('dialog', { timeout: 10000 });
-    await this.page.locator('a.btn-success').click();
+    await addToCartButton.click();
     const dialog = await dialogPromise;
     await dialog.accept();
-    await this.page.waitForTimeout(1000);
+    // Wait for dialog to close - use waitForLoadState instead of timeout
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**
-   * Find and add the most expensive (luxury) product to cart
-   * Used for testing premium product selection
+   * Find and add the most expensive (luxury) item to cart
+   * Parses all product prices and identifies the highest-priced item
+   * Note: Uses getByRole to find products. For price comparison, navigates to each product page.
+   * This is a last-resort approach when prices aren't easily accessible on listing page.
+   * Suggestion: Add data-testid="product-price" to product cards for better testability.
    */
   async findAndAddLuxuryItem(): Promise<void> {
-    await this.page.waitForSelector('.card-block', { state: 'visible', timeout: 15000 });
+    // Wait for products to be visible
+    await this.page.getByText('Add to cart').first().waitFor({ state: 'visible', timeout: 15000 });
 
-    const productCards = await this.page.locator('.card-block').all();
+    // Get all product links (exclude navigation links)
+    const productLinks = this.page.getByRole('link').filter({
+      hasNotText: /Home|Contact|About|Cart|Log|Sign|Add to cart/i,
+    });
+    const productCount = await productLinks.count();
+
+    if (productCount === 0) {
+      throw new Error('No products found on page');
+    }
+
     let maxPrice = 0;
-    let luxuryCardIndex = 0;
+    let luxuryIndex = 0;
 
-    // Find the most expensive item
-    for (let i = 0; i < productCards.length; i++) {
+    // For each product, navigate to its page and check price
+    for (let i = 0; i < productCount; i++) {
       try {
-        const priceElement = await productCards[i].locator('h5').textContent();
-        if (priceElement && priceElement.trim().startsWith('$')) {
-          const priceText = priceElement.trim().replace('$', '').split(' ')[0];
-          const price = parseFloat(priceText);
-          if (!isNaN(price) && price > maxPrice) {
-            maxPrice = price;
-            luxuryCardIndex = i;
+        // Get product link by index (using nth as last resort for product list)
+        const productLink = productLinks.nth(i);
+        const productName = await productLink.textContent();
+
+        if (!productName || !productName.trim()) continue;
+
+        // Navigate to product page
+        await productLink.click();
+        await this.waitForLoad();
+
+        // Get price from product detail page using getByRole
+        const priceHeading = this.page.getByRole('heading', { level: 3 }).filter({ hasText: '$' });
+        const priceText = await priceHeading.textContent();
+
+        if (priceText) {
+          const priceMatch = priceText.match(/\$(\d+)/);
+          if (priceMatch) {
+            const price = parseFloat(priceMatch[1]);
+            if (!isNaN(price) && price > maxPrice) {
+              maxPrice = price;
+              luxuryIndex = i;
+            }
           }
         }
+
+        // Go back to product list
+        await this.page.goBack();
+        await this.waitForLoad();
+        // Wait a bit for page to stabilize
+        await this.page.waitForLoadState('domcontentloaded');
       } catch (error) {
-        // Skip products without valid prices
+        // If error, try to go back and continue
+        try {
+          await this.page.goBack();
+          await this.waitForLoad();
+        } catch {
+          // If can't go back, navigate to home
+          await this.navigate();
+        }
         continue;
       }
     }
 
-    const luxuryCard = productCards[luxuryCardIndex];
-    await luxuryCard.locator('.card-title a').first().click();
-    await this.page.waitForSelector('a.btn-success', { state: 'visible', timeout: 15000 });
+    if (maxPrice === 0) {
+      throw new Error('No valid product prices found');
+    }
 
-    const dialogPromise = this.page.waitForEvent('dialog', { timeout: 10000 });
-    await this.page.locator('a.btn-success').click();
-    const dialog = await dialogPromise;
-    await dialog.accept();
-    await this.page.waitForTimeout(1000);
+    // Navigate to the luxury product
+    const luxuryLink = productLinks.nth(luxuryIndex);
+    await luxuryLink.click();
+    await this.waitForLoad();
+
+    // Add to cart
+    await this.addToCartFromProductPage();
   }
 
   /**
-   * Newsletter signup (not available on Demoblaze)
-   * @param _email - Email address (unused)
+   * Navigate to Laptops and add the most expensive laptop
    */
-  async signupForNewsletter(_email: string): Promise<void> {
-    // Demoblaze doesn't have newsletter signup functionality
+  async addLuxuryLaptopToCart(): Promise<void> {
+    await this.selectLaptopsCategory();
+    await this.findAndAddLuxuryItem();
+  }
+
+  /**
+   * Get the number of products displayed on the current page
+   */
+  async getProductCount(): Promise<number> {
+    // Count products by counting "Add to cart" buttons
+    return await this.page.getByRole('link', { name: 'Add to cart' }).count();
+  }
+
+  /**
+   * Get all product titles from the current page
+   * Note: Uses getByRole to find product links, filtering out navigation links
+   */
+  async getProductTitles(): Promise<string[]> {
+    // Product titles are in links - exclude navigation and action links
+    const productLinks = this.page.getByRole('link').filter({
+      hasNotText: /Home|Contact|About|Cart|Log|Sign|Add to cart/i,
+    });
+    const count = await productLinks.count();
+    const titles: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const text = await productLinks.nth(i).textContent();
+      if (text && text.trim()) titles.push(text.trim());
+    }
+    return titles;
   }
 }

@@ -1,7 +1,7 @@
 import { test as base } from '@playwright/test';
 import { HomePage } from '../pages/HomePage';
 import { ProductPage } from '../pages/ProductPage';
-import { ShoppingCartPage } from '../pages/ShoppingCartPage';
+import { CartPage } from '../pages/CartPage';
 import { CheckoutPage } from '../pages/CheckoutPage';
 import testUsers from '../data/testUsers.json';
 import testProducts from '../data/testProducts.json';
@@ -12,7 +12,7 @@ import paymentInfo from '../data/paymentInfo.json';
 export const test = base.extend<{
   homePage: HomePage;
   productPage: ProductPage;
-  cartPage: ShoppingCartPage;
+  cartPage: CartPage;
   checkoutPage: CheckoutPage;
   testUsers: typeof testUsers;
   testProducts: typeof testProducts;
@@ -29,8 +29,9 @@ export const test = base.extend<{
     await use(productPage);
   },
 
-  cartPage: async ({ page }, use) => {
-    const cartPage = new ShoppingCartPage(page);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  cartPage: async ({ page }: any, use: any) => {
+    const cartPage = new CartPage(page);
     await use(cartPage);
   },
 

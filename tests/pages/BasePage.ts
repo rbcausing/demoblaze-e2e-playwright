@@ -1,33 +1,51 @@
-import { Page, Locator } from '@playwright/test';
+import { Page } from '@playwright/test';
 
+/**
+ * Base Page Object Model class
+ * Provides common functionality for all page objects
+ */
 export class BasePage {
   readonly page: Page;
-  readonly loadingSpinner: Locator;
-  readonly errorMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.loadingSpinner = page.locator('[data-testid="loading-spinner"]');
-    this.errorMessage = page.locator('[data-testid="error-message"]');
   }
 
-  async waitForPageLoad(): Promise<void> {
+  /**
+   * Wait for page to load completely
+   * Uses networkidle to ensure all network requests are complete
+   */
+  async waitForLoad(): Promise<void> {
     await this.page.waitForLoadState('networkidle');
   }
 
-  async waitForLoadingToFinish(): Promise<void> {
-    await this.loadingSpinner.waitFor({ state: 'hidden', timeout: 10000 });
+  /**
+   * Wait for DOM content to be loaded
+   * Faster alternative to networkidle when network activity is not critical
+   */
+  async waitForDOMContent(): Promise<void> {
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
-  async takeScreenshot(name: string): Promise<void> {
-    await this.page.screenshot({ path: `screenshots/${name}.png`, fullPage: true });
-  }
-
+  /**
+   * Get current page title
+   */
   async getPageTitle(): Promise<string> {
     return await this.page.title();
   }
 
+  /**
+   * Get current page URL
+   */
   async getCurrentUrl(): Promise<string> {
     return this.page.url();
+  }
+
+  /**
+   * Navigate to a URL
+   */
+  async goto(url: string): Promise<void> {
+    await this.page.goto(url, { waitUntil: 'domcontentloaded' });
+    await this.waitForLoad();
   }
 }

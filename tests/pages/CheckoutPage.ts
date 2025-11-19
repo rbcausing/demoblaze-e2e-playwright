@@ -1,108 +1,73 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 
-export interface ShippingAddress {
-  firstName: string;
-  lastName: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  phone?: string;
-}
-
-export interface PaymentInfo {
-  cardNumber: string;
-  expiryMonth: string;
-  expiryYear: string;
-  cvv: string;
-  cardholderName: string;
-}
-
+/**
+ * Page Object Model for DemoBlaze Checkout Page
+ */
 export class CheckoutPage extends BasePage {
-  readonly shippingSection: Locator;
-  readonly billingSection: Locator;
-  readonly paymentSection: Locator;
-  readonly orderSummary: Locator;
-  readonly placeOrderButton: Locator;
-  readonly firstNameInput: Locator;
-  readonly lastNameInput: Locator;
-  readonly addressInput: Locator;
-  readonly cityInput: Locator;
-  readonly stateSelect: Locator;
-  readonly zipCodeInput: Locator;
-  readonly countrySelect: Locator;
-  readonly phoneInput: Locator;
-  readonly cardNumberInput: Locator;
-  readonly expiryMonthSelect: Locator;
-  readonly expiryYearSelect: Locator;
-  readonly cvvInput: Locator;
-  readonly cardholderNameInput: Locator;
-  readonly sameAsBillingCheckbox: Locator;
-  readonly orderTotal: Locator;
-  readonly shippingCost: Locator;
-  readonly taxAmount: Locator;
-
-  // Demoblaze-specific selectors
-  readonly orderModal: Locator;
-  readonly nameInput: Locator;
-  readonly countryInput: Locator;
-  readonly cityInputDemoblaze: Locator;
-  readonly cardInput: Locator;
-  readonly monthInput: Locator;
-  readonly yearInput: Locator;
-  readonly purchaseButton: Locator;
-  readonly confirmationModal: Locator;
-
   constructor(page: Page) {
     super(page);
-
-    // Demoblaze-specific selectors
-    this.orderModal = page.locator('#orderModal');
-    this.nameInput = page.locator('#name');
-    this.countryInput = page.locator('#country');
-    this.cityInputDemoblaze = page.locator('#city');
-    this.cardInput = page.locator('#card');
-    this.monthInput = page.locator('#month');
-    this.yearInput = page.locator('#year');
-    this.purchaseButton = page.locator('button[onclick="purchaseOrder()"]');
-    this.confirmationModal = page.locator('.sweet-alert');
-
-    // Keep generic selectors for backward compatibility
-    this.shippingSection = page.locator('[data-testid="shipping-section"]');
-    this.billingSection = page.locator('[data-testid="billing-section"]');
-    this.paymentSection = page.locator('[data-testid="payment-section"]');
-    this.orderSummary = page.locator('[data-testid="order-summary"]');
-    this.placeOrderButton = page.locator('[data-testid="place-order-button"]');
-    this.firstNameInput = page.locator('[data-testid="first-name"]');
-    this.lastNameInput = page.locator('[data-testid="last-name"]');
-    this.addressInput = page.locator('[data-testid="address"]');
-    this.cityInput = page.locator('[data-testid="city"]');
-    this.stateSelect = page.locator('[data-testid="state"]');
-    this.zipCodeInput = page.locator('[data-testid="zip-code"]');
-    this.countrySelect = page.locator('[data-testid="country"]');
-    this.phoneInput = page.locator('[data-testid="phone"]');
-    this.cardNumberInput = page.locator('[data-testid="card-number"]');
-    this.expiryMonthSelect = page.locator('[data-testid="expiry-month"]');
-    this.expiryYearSelect = page.locator('[data-testid="expiry-year"]');
-    this.cvvInput = page.locator('[data-testid="cvv"]');
-    this.cardholderNameInput = page.locator('[data-testid="cardholder-name"]');
-    this.sameAsBillingCheckbox = page.locator('[data-testid="same-as-billing"]');
-    this.orderTotal = page.locator('[data-testid="order-total"]');
-    this.shippingCost = page.locator('[data-testid="shipping-cost"]');
-    this.taxAmount = page.locator('[data-testid="tax-amount"]');
-  }
-
-  async goto(): Promise<void> {
-    await this.page.goto('/checkout');
-    await this.waitForPageLoad();
   }
 
   /**
-   * Fill Demoblaze order form
+   * Fill checkout form
+   * Note: DemoBlaze form fields have IDs but no proper labels or placeholders.
+   * Suggestion: Add data-testid attributes (data-testid="checkout-name", etc.) for better testability.
+   * Currently using getByRole('textbox') with position-based selection as a last resort.
    */
-  async fillDemoblazeOrderForm(orderData: {
+  async fillForm(
+    name: string,
+    country: string,
+    city: string,
+    card: string,
+    month: string,
+    year: string
+  ): Promise<void> {
+    // Wait for order modal to be visible
+    const dialog = this.page.getByRole('dialog');
+    await dialog.waitFor({ state: 'visible', timeout: 15000 });
+
+    // Get all textboxes in the dialog - DemoBlaze form fields don't have labels/placeholders
+    // We use position-based selection as last resort (fields are in consistent order)
+    // TODO: Suggest adding data-testid attributes to DemoBlaze team
+    const textboxes = dialog.getByRole('textbox');
+
+    // Fill fields in order: Name, Country, City, Card, Month, Year
+    await textboxes.nth(0).fill(name);
+    await textboxes.nth(1).fill(country);
+    await textboxes.nth(2).fill(city);
+    await textboxes.nth(3).fill(card);
+    await textboxes.nth(4).fill(month);
+    await textboxes.nth(5).fill(year);
+  }
+
+  /**
+   * Complete purchase
+   */
+  async completePurchase(): Promise<void> {
+    // Purchase button - look for button with "Purchase" text
+    const purchaseButton = this.page.getByRole('button', { name: /Purchase/i });
+    await purchaseButton.waitFor({ state: 'visible', timeout: 15000 });
+    await purchaseButton.click();
+    // Wait for confirmation modal to appear
+    await this.page
+      .getByText('Thank you for your purchase!')
+      .waitFor({ state: 'visible', timeout: 15000 });
+  }
+
+  /**
+   * Verify order confirmation
+   */
+  async verifyConfirmation(): Promise<void> {
+    await expect(this.page.getByText('Thank you for your purchase!')).toBeVisible({
+      timeout: 10000,
+    });
+  }
+
+  /**
+   * Fill order form (alias for fillForm with different parameter structure)
+   */
+  async fillOrderForm(orderData: {
     name: string;
     country: string;
     city: string;
@@ -110,88 +75,51 @@ export class CheckoutPage extends BasePage {
     month: string;
     year: string;
   }): Promise<void> {
-    // Wait for order modal to be visible
-    await this.page.waitForSelector('#orderModal', { state: 'visible', timeout: 15000 });
-
-    await this.nameInput.fill(orderData.name);
-    await this.countryInput.fill(orderData.country);
-    await this.cityInputDemoblaze.fill(orderData.city);
-    await this.cardInput.fill(orderData.creditCard);
-    await this.monthInput.fill(orderData.month);
-    await this.yearInput.fill(orderData.year);
-  }
-
-  async fillShippingAddress(address: ShippingAddress): Promise<void> {
-    // For Demoblaze, we combine first and last name
-    await this.nameInput.fill(`${address.firstName} ${address.lastName}`);
-    await this.countryInput.fill(address.country);
-    await this.cityInputDemoblaze.fill(address.city);
-  }
-
-  async fillPaymentInfo(payment: PaymentInfo): Promise<void> {
-    await this.cardInput.fill(payment.cardNumber);
-    await this.monthInput.fill(payment.expiryMonth);
-    await this.yearInput.fill(payment.expiryYear);
-  }
-
-  async useSameAsBillingAddress(): Promise<void> {
-    // Demoblaze doesn't have separate billing address
-    console.log('Same as billing not applicable on Demoblaze');
-  }
-
-  async placeOrder(): Promise<void> {
-    await this.page.waitForSelector('button[onclick="purchaseOrder()"]', {
-      state: 'visible',
-      timeout: 15000,
-    });
-    await this.purchaseButton.click();
-    // Wait for confirmation modal to appear
-    await this.page.waitForSelector('.sweet-alert', { state: 'visible', timeout: 15000 });
-  }
-
-  async getOrderTotal(): Promise<string> {
-    // Demoblaze shows total in confirmation modal
-    const details = await this.getOrderDetails();
-    const amountMatch = details.match(/Amount:\s*(\d+)/);
-    return amountMatch ? `$${amountMatch[1]}` : '';
-  }
-
-  async getShippingCost(): Promise<string> {
-    // Demoblaze doesn't show separate shipping cost
-    return '$0.00';
-  }
-
-  async getTaxAmount(): Promise<string> {
-    // Demoblaze doesn't show separate tax amount
-    return '$0.00';
-  }
-
-  async scrollToPaymentSection(): Promise<void> {
-    // Demoblaze has a modal, so scrolling isn't needed
-    console.log('Scrolling not needed for Demoblaze modal');
-  }
-
-  async isFormValid(): Promise<boolean> {
-    // Check if all required fields are filled
-    const name = await this.nameInput.inputValue();
-    const country = await this.countryInput.inputValue();
-    const city = await this.cityInputDemoblaze.inputValue();
-    const card = await this.cardInput.inputValue();
-    const month = await this.monthInput.inputValue();
-    const year = await this.yearInput.inputValue();
-
-    return !!(name && country && city && card && month && year);
+    await this.fillForm(
+      orderData.name,
+      orderData.country,
+      orderData.city,
+      orderData.creditCard,
+      orderData.month,
+      orderData.year
+    );
   }
 
   /**
-   * Get order confirmation details from Demoblaze
+   * Click Purchase button (alias for completePurchase)
+   */
+  async clickPurchase(): Promise<void> {
+    await this.completePurchase();
+  }
+
+  /**
+   * Get confirmation message
+   */
+  async getConfirmationMessage(): Promise<string> {
+    const message = this.page.getByText('Thank you for your purchase!');
+    return (await message.textContent()) || '';
+  }
+
+  /**
+   * Get order details text
+   * Note: Using getByText to find the lead paragraph with order details
+   * Suggestion: Add data-testid="order-details" for better testability
    */
   async getOrderDetails(): Promise<string> {
-    return (await this.page.locator('.sweet-alert .lead').textContent()) || '';
+    // Order details are in a lead paragraph after the confirmation
+    // Find text containing order information patterns
+    const detailsText = this.page.getByText(/Id:.*Amount:.*Card:.*Name:/s);
+    const text = await detailsText.textContent();
+    if (text) {
+      return text;
+    }
+    // Fallback: try to find any text with order details
+    const fallbackText = this.page.getByText(/Id:\s*\d+/);
+    return (await fallbackText.textContent()) || '';
   }
 
   /**
-   * Get order ID from confirmation
+   * Extract order ID from order details
    */
   async getOrderId(): Promise<string> {
     const details = await this.getOrderDetails();
@@ -200,7 +128,7 @@ export class CheckoutPage extends BasePage {
   }
 
   /**
-   * Get order amount from confirmation
+   * Extract order amount from order details
    */
   async getOrderAmount(): Promise<string> {
     const details = await this.getOrderDetails();
@@ -209,14 +137,12 @@ export class CheckoutPage extends BasePage {
   }
 
   /**
-   * Click OK on confirmation modal
+   * Click OK button to close confirmation modal
    */
   async clickOk(): Promise<void> {
-    await this.page.waitForSelector('.confirm.btn.btn-lg.btn-primary', {
-      state: 'visible',
-      timeout: 15000,
-    });
-    await this.page.locator('.confirm.btn.btn-lg.btn-primary').click();
-    await this.page.waitForTimeout(1000);
+    const okButton = this.page.getByRole('button', { name: /OK|Ok/i });
+    await okButton.waitFor({ state: 'visible', timeout: 15000 });
+    await okButton.click();
+    await this.page.waitForLoadState('domcontentloaded');
   }
 }

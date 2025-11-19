@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { DemoblazeHomePage } from '../pages/DemoblazeHomePage';
-import { DemoblazeCartPage } from '../pages/DemoblazeCartPage';
-import { DemoblazeCheckoutPage } from '../pages/DemoblazeCheckoutPage';
+import { HomePage } from '../pages/HomePage';
+import { CartPage } from '../pages/CartPage';
+import { CheckoutPage } from '../pages/CheckoutPage';
 
 test.describe('Demoblaze - Laptops Luxury Checkout Flow', () => {
   test('Browse Laptops, add luxury item, checkout on Demoblaze @smoke', async ({ page }) => {
-    const home = new DemoblazeHomePage(page);
-    const cart = new DemoblazeCartPage(page);
-    const checkout = new DemoblazeCheckoutPage(page);
+    const home = new HomePage(page);
+    const cart = new CartPage(page);
+    const checkout = new CheckoutPage(page);
 
     // Step 1: Navigate to Demoblaze homepage
     await home.navigate();
@@ -16,7 +16,7 @@ test.describe('Demoblaze - Laptops Luxury Checkout Flow', () => {
     await home.selectCategory('Laptops');
 
     // Step 3: Find and add luxury item (most expensive laptop)
-    await home.findLuxuryItem();
+    await home.findAndAddLuxuryItem();
 
     // Step 4: Navigate to cart and verify item
     await cart.navigateToCart();
@@ -40,14 +40,14 @@ test.describe('Demoblaze - Laptops Luxury Checkout Flow', () => {
   // Add more tests here for additional scenarios
 
   test('Verify luxury laptop detection works correctly @regression', async ({ page }) => {
-    const home = new DemoblazeHomePage(page);
-    const cart = new DemoblazeCartPage(page);
+    const home = new HomePage(page);
+    const cart = new CartPage(page);
 
     await home.navigate();
     await home.selectCategory('Laptops');
 
-    // Use the working method from DemoblazeHomePage
-    await home.findLuxuryItem();
+    // Use the working method from HomePage
+    await home.findAndAddLuxuryItem();
 
     // Verify it was added by going to cart
     await cart.navigateToCart();
@@ -61,9 +61,9 @@ test.describe('Demoblaze - Laptops Luxury Checkout Flow', () => {
   });
 
   test('Complete checkout with multiple items @regression', async ({ page }) => {
-    const home = new DemoblazeHomePage(page);
-    const cart = new DemoblazeCartPage(page);
-    const checkout = new DemoblazeCheckoutPage(page);
+    const home = new HomePage(page);
+    const cart = new CartPage(page);
+    const checkout = new CheckoutPage(page);
 
     // Set longer timeout for this complex test
     test.setTimeout(60000);
@@ -72,7 +72,7 @@ test.describe('Demoblaze - Laptops Luxury Checkout Flow', () => {
     await home.selectCategory('Laptops');
 
     // Add first laptop (luxury item)
-    await home.findLuxuryItem();
+    await home.findAndAddLuxuryItem();
     console.log('Added first laptop to cart');
 
     // Navigate back to homepage and then to laptops again
@@ -113,9 +113,9 @@ test.describe('Demoblaze - Laptops Luxury Checkout Flow', () => {
   });
 
   test('Handle form validation scenarios @regression', async ({ page }) => {
-    const home = new DemoblazeHomePage(page);
-    const cart = new DemoblazeCartPage(page);
-    const checkout = new DemoblazeCheckoutPage(page);
+    const home = new HomePage(page);
+    const cart = new CartPage(page);
+    const checkout = new CheckoutPage(page);
 
     await home.navigate();
     await home.selectCategory('Laptops');
@@ -130,7 +130,7 @@ test.describe('Demoblaze - Laptops Luxury Checkout Flow', () => {
 
     // The form should not submit without required fields
     // Verify the modal stays open (Demoblaze doesn't have client-side validation)
-    const orderModal = await checkout.orderModal();
+    const orderModal = page.getByRole('dialog');
     await expect(orderModal).toBeVisible();
   });
 });
