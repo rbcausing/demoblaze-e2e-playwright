@@ -38,14 +38,14 @@ export class HomePage extends BasePage {
     this.homeLink = page.locator('text=Home');
     this.contactLink = page.locator('text=Contact');
     this.aboutUsLink = page.locator('text=About us');
-    this.cartLink = page.locator('text=Cart');
+    this.cartLink = page.locator('#cartur');
     this.logInLink = page.locator('text=Log in');
     this.signUpLink = page.locator('text=Sign up');
 
-    // Demoblaze category navigation
-    this.laptopsCategory = page.locator('text=Laptops');
-    this.phonesCategory = page.locator('text=Phones');
-    this.monitorsCategory = page.locator('text=Monitors');
+    // Demoblaze category navigation - using onclick handlers
+    this.laptopsCategory = page.locator('a[onclick="byCat(\'notebook\')"]');
+    this.phonesCategory = page.locator('a[onclick="byCat(\'phone\')"]');
+    this.monitorsCategory = page.locator('a[onclick="byCat(\'monitor\')"]');
 
     // Demoblaze product elements
     this.productCards = page.locator('.card');
@@ -92,19 +92,19 @@ export class HomePage extends BasePage {
    * Select a category using Demoblaze's category navigation
    */
   async selectCategory(categoryName: string): Promise<void> {
-    if (categoryName.toLowerCase() === 'laptops') {
-      // Use the exact onclick method for laptops
-      await this.page.click('a[onclick="byCat(\'notebook\')"]');
-    } else if (categoryName.toLowerCase() === 'phones') {
-      await this.page.click('a[onclick="byCat(\'phone\')"]');
-    } else if (categoryName.toLowerCase() === 'monitors') {
-      await this.page.click('a[onclick="byCat(\'monitor\')"]');
+    const categoryLower = categoryName.toLowerCase();
+    if (categoryLower === 'laptops') {
+      await this.laptopsCategory.click();
+    } else if (categoryLower === 'phones') {
+      await this.phonesCategory.click();
+    } else if (categoryLower === 'monitors') {
+      await this.monitorsCategory.click();
     } else {
-      await this.page.click(`text=${categoryName}`);
+      throw new Error(`Unknown category: ${categoryName}`);
     }
 
     // Wait for the product container to load
-    await this.page.waitForSelector('.card-block');
+    await this.page.waitForSelector('.card-block', { state: 'visible', timeout: 15000 });
   }
 
   /**
@@ -154,14 +154,17 @@ export class HomePage extends BasePage {
    * Add a product to cart by index
    */
   async addProductToCartByIndex(index: number): Promise<void> {
-    await this.productTitles.nth(index).click();
+    await this.page.waitForSelector('.card-block', { state: 'visible', timeout: 15000 });
+    await this.page.locator('.card-block .card-title a').nth(index).click();
 
     // Wait for product page to load
-    await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
+    await this.page.waitForSelector('a.btn-success', { state: 'visible', timeout: 15000 });
 
     // Set up dialog handler before clicking
-    this.page.once('dialog', dialog => dialog.accept());
-    await this.page.click('text=Add to cart');
+    const dialogPromise = this.page.waitForEvent('dialog', { timeout: 10000 });
+    await this.page.locator('a.btn-success').click();
+    const dialog = await dialogPromise;
+    await dialog.accept();
     await this.page.waitForTimeout(1000);
   }
 
@@ -170,7 +173,7 @@ export class HomePage extends BasePage {
    * Used for testing premium product selection
    */
   async findAndAddLuxuryItem(): Promise<void> {
-    await this.page.waitForSelector('.card-block', { timeout: 10000 });
+    await this.page.waitForSelector('.card-block', { state: 'visible', timeout: 15000 });
 
     const productCards = await this.page.locator('.card-block').all();
     let maxPrice = 0;
@@ -180,9 +183,10 @@ export class HomePage extends BasePage {
     for (let i = 0; i < productCards.length; i++) {
       try {
         const priceElement = await productCards[i].locator('h5').textContent();
-        if (priceElement && priceElement.startsWith('$')) {
-          const price = parseFloat(priceElement.replace('$', ''));
-          if (price > maxPrice) {
+        if (priceElement && priceElement.trim().startsWith('$')) {
+          const priceText = priceElement.trim().replace('$', '').split(' ')[0];
+          const price = parseFloat(priceText);
+          if (!isNaN(price) && price > maxPrice) {
             maxPrice = price;
             luxuryCardIndex = i;
           }
@@ -194,11 +198,13 @@ export class HomePage extends BasePage {
     }
 
     const luxuryCard = productCards[luxuryCardIndex];
-    await luxuryCard.locator('a').first().click();
-    await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
+    await luxuryCard.locator('.card-title a').first().click();
+    await this.page.waitForSelector('a.btn-success', { state: 'visible', timeout: 15000 });
 
-    this.page.once('dialog', dialog => dialog.accept());
-    await this.page.click('.btn.btn-success.btn-lg');
+    const dialogPromise = this.page.waitForEvent('dialog', { timeout: 10000 });
+    await this.page.locator('a.btn-success').click();
+    const dialog = await dialogPromise;
+    await dialog.accept();
     await this.page.waitForTimeout(1000);
   }
 

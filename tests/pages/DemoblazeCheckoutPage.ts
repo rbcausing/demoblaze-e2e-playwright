@@ -11,20 +11,32 @@ export class DemoblazeCheckoutPage {
     month: string,
     year: string
   ): Promise<void> {
-    await this.page.fill('#name', name);
-    await this.page.fill('#country', country);
-    await this.page.fill('#city', city);
-    await this.page.fill('#card', card);
-    await this.page.fill('#month', month);
-    await this.page.fill('#year', year);
+    // Wait for order modal to be visible
+    await this.page.waitForSelector('#orderModal', { state: 'visible', timeout: 15000 });
+
+    await this.page.locator('#name').fill(name);
+    await this.page.locator('#country').fill(country);
+    await this.page.locator('#city').fill(city);
+    await this.page.locator('#card').fill(card);
+    await this.page.locator('#month').fill(month);
+    await this.page.locator('#year').fill(year);
   }
 
   async completePurchase(): Promise<void> {
-    await this.page.click('button[onclick="purchaseOrder()"]');
+    await this.page.waitForSelector('button[onclick="purchaseOrder()"]', {
+      state: 'visible',
+      timeout: 15000,
+    });
+    await this.page.locator('button[onclick="purchaseOrder()"]').click();
+    // Wait for confirmation modal to appear
+    await this.page.waitForSelector('.sweet-alert', { state: 'visible', timeout: 15000 });
   }
 
   async verifyConfirmation(): Promise<void> {
-    await expect(this.page.locator('.sweet-alert h2')).toHaveText('Thank you for your purchase!');
+    await this.page.waitForSelector('.sweet-alert h2', { state: 'visible', timeout: 15000 });
+    await expect(this.page.locator('.sweet-alert h2')).toHaveText('Thank you for your purchase!', {
+      timeout: 10000,
+    });
   }
 
   // Additional methods for compatibility with existing tests
@@ -71,7 +83,12 @@ export class DemoblazeCheckoutPage {
   }
 
   async clickOk(): Promise<void> {
-    await this.page.click('.confirm.btn.btn-lg.btn-primary');
+    await this.page.waitForSelector('.confirm.btn.btn-lg.btn-primary', {
+      state: 'visible',
+      timeout: 15000,
+    });
+    await this.page.locator('.confirm.btn.btn-lg.btn-primary').click();
+    await this.page.waitForTimeout(1000);
   }
 
   async orderModal(): Promise<any> {

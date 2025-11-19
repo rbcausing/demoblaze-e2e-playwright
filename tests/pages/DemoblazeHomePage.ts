@@ -19,14 +19,15 @@ export class DemoblazeHomePage {
   readonly homeLink = this.page.locator('text=Home');
   readonly contactLink = this.page.locator('text=Contact');
   readonly aboutUsLink = this.page.locator('text=About us');
-  readonly cartLink = this.page.locator('text=Cart');
+  readonly cartLink = this.page.locator('#cartur');
   readonly logInLink = this.page.locator('text=Log in');
   readonly signUpLink = this.page.locator('text=Sign up');
 
   // Category navigation - using exact selectors from Demoblaze
-  readonly laptopsCategory = this.page.locator('text=Laptops');
-  readonly phonesCategory = this.page.locator('text=Phones');
-  readonly monitorsCategory = this.page.locator('text=Monitors');
+  // Categories use onclick handlers: byCat('notebook'), byCat('phone'), byCat('monitor')
+  readonly laptopsCategory = this.page.locator('a[onclick="byCat(\'notebook\')"]');
+  readonly phonesCategory = this.page.locator('a[onclick="byCat(\'phone\')"]');
+  readonly monitorsCategory = this.page.locator('a[onclick="byCat(\'monitor\')"]');
 
   // Product elements - using exact selectors
   readonly productCards = this.page.locator('.card');
@@ -57,12 +58,18 @@ export class DemoblazeHomePage {
    * @param category - Category name: 'Laptops', 'Phones', or 'Monitors'
    */
   async selectCategory(category: string): Promise<void> {
-    if (category.toLowerCase() === 'laptops') {
-      await this.page.click('a[onclick="byCat(\'notebook\')"]');
+    const categoryLower = category.toLowerCase();
+    if (categoryLower === 'laptops') {
+      await this.laptopsCategory.click();
+    } else if (categoryLower === 'phones') {
+      await this.phonesCategory.click();
+    } else if (categoryLower === 'monitors') {
+      await this.monitorsCategory.click();
     } else {
-      await this.page.click(`text=${category}`);
+      throw new Error(`Unknown category: ${category}`);
     }
-    await this.page.waitForSelector('.card-block');
+    // Wait for products to load
+    await this.page.waitForSelector('.card-block', { state: 'visible', timeout: 15000 });
   }
 
   /**
@@ -77,15 +84,18 @@ export class DemoblazeHomePage {
    * Handles JavaScript dialog confirmation
    */
   async addFirstProductToCart(): Promise<void> {
-    await this.page.click('.card-title a >> nth=0');
-    await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
+    // Wait for products to be visible
+    await this.page.waitForSelector('.card-block', { state: 'visible', timeout: 15000 });
+
+    // Click on the first product link within card-block
+    await this.page.locator('.card-block .card-title a').first().click();
+    await this.page.waitForSelector('a.btn-success', { state: 'visible', timeout: 15000 });
 
     // Set up dialog handler before clicking
-    this.page.once('dialog', async dialog => {
-      await dialog.accept();
-    });
-
-    await this.page.click('text=Add to cart');
+    const dialogPromise = this.page.waitForEvent('dialog', { timeout: 10000 });
+    await this.page.locator('a.btn-success').click();
+    const dialog = await dialogPromise;
+    await dialog.accept();
     await this.page.waitForTimeout(1000);
   }
 
@@ -102,7 +112,7 @@ export class DemoblazeHomePage {
    * ```
    */
   async findLuxuryItem(): Promise<void> {
-    await this.page.waitForSelector('.card-block', { timeout: 10000 });
+    await this.page.waitForSelector('.card-block', { state: 'visible', timeout: 15000 });
 
     const productCards = await this.page.locator('.card-block').all();
 
@@ -114,13 +124,16 @@ export class DemoblazeHomePage {
     for (let i = 0; i < productCards.length; i++) {
       try {
         const priceElement = await productCards[i].locator('h5').textContent();
-        if (priceElement && priceElement.startsWith('$')) {
-          const price = parseFloat(priceElement.replace('$', ''));
-          validPrices.push(price);
+        if (priceElement && priceElement.trim().startsWith('$')) {
+          const priceText = priceElement.trim().replace('$', '').split(' ')[0]; // Handle cases like "$1100 *includes tax"
+          const price = parseFloat(priceText);
+          if (!isNaN(price)) {
+            validPrices.push(price);
 
-          if (price > maxPrice) {
-            maxPrice = price;
-            luxuryCardIndex = i;
+            if (price > maxPrice) {
+              maxPrice = price;
+              luxuryCardIndex = i;
+            }
           }
         }
       } catch (error) {
@@ -134,12 +147,15 @@ export class DemoblazeHomePage {
     }
 
     const luxuryCard = productCards[luxuryCardIndex];
-    await luxuryCard.locator('a').first().click();
-    await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
+    // Click on the product title link within the card
+    await luxuryCard.locator('.card-title a').first().click();
+    await this.page.waitForSelector('a.btn-success', { state: 'visible', timeout: 15000 });
 
     // Handle add to cart dialog
-    this.page.once('dialog', dialog => dialog.accept());
-    await this.page.click('.btn.btn-success.btn-lg');
+    const dialogPromise = this.page.waitForEvent('dialog', { timeout: 10000 });
+    await this.page.locator('a.btn-success').click();
+    const dialog = await dialogPromise;
+    await dialog.accept();
     await this.page.waitForTimeout(1000);
   }
 
@@ -189,11 +205,14 @@ export class DemoblazeHomePage {
    * @param index - Zero-based index of the product (0 = first product)
    */
   async addProductToCartByIndex(index: number): Promise<void> {
-    await this.productTitles.nth(index).click();
-    await this.page.waitForSelector('.btn.btn-success.btn-lg', { timeout: 10000 });
+    await this.page.waitForSelector('.card-block', { state: 'visible', timeout: 15000 });
+    await this.page.locator('.card-block .card-title a').nth(index).click();
+    await this.page.waitForSelector('a.btn-success', { state: 'visible', timeout: 15000 });
 
-    this.page.once('dialog', dialog => dialog.accept());
-    await this.page.click('text=Add to cart');
+    const dialogPromise = this.page.waitForEvent('dialog', { timeout: 10000 });
+    await this.page.locator('a.btn-success').click();
+    const dialog = await dialogPromise;
+    await dialog.accept();
     await this.page.waitForTimeout(1000);
   }
 }
