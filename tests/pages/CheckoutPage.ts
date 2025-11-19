@@ -110,6 +110,9 @@ export class CheckoutPage extends BasePage {
     month: string;
     year: string;
   }): Promise<void> {
+    // Wait for order modal to be visible
+    await this.page.waitForSelector('#orderModal', { state: 'visible', timeout: 15000 });
+
     await this.nameInput.fill(orderData.name);
     await this.countryInput.fill(orderData.country);
     await this.cityInputDemoblaze.fill(orderData.city);
@@ -137,8 +140,13 @@ export class CheckoutPage extends BasePage {
   }
 
   async placeOrder(): Promise<void> {
+    await this.page.waitForSelector('button[onclick="purchaseOrder()"]', {
+      state: 'visible',
+      timeout: 15000,
+    });
     await this.purchaseButton.click();
-    await this.waitForPageLoad();
+    // Wait for confirmation modal to appear
+    await this.page.waitForSelector('.sweet-alert', { state: 'visible', timeout: 15000 });
   }
 
   async getOrderTotal(): Promise<string> {
@@ -204,6 +212,11 @@ export class CheckoutPage extends BasePage {
    * Click OK on confirmation modal
    */
   async clickOk(): Promise<void> {
-    await this.page.click('.confirm.btn.btn-lg.btn-primary');
+    await this.page.waitForSelector('.confirm.btn.btn-lg.btn-primary', {
+      state: 'visible',
+      timeout: 15000,
+    });
+    await this.page.locator('.confirm.btn.btn-lg.btn-primary').click();
+    await this.page.waitForTimeout(1000);
   }
 }

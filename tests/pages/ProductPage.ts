@@ -69,10 +69,14 @@ export class ProductPage extends BasePage {
   }
 
   async addToCart(): Promise<void> {
+    await this.page.waitForSelector('a.btn-success', { state: 'visible', timeout: 15000 });
+
     // Set up dialog handler before clicking
-    this.page.once('dialog', dialog => dialog.accept());
+    const dialogPromise = this.page.waitForEvent('dialog', { timeout: 10000 });
     await this.addToCartButton.click();
-    await this.waitForLoadingToFinish();
+    const dialog = await dialogPromise;
+    await dialog.accept();
+    await this.page.waitForTimeout(1000);
   }
 
   async buyNow(): Promise<void> {

@@ -64,34 +64,52 @@ export class ShoppingCartPage extends BasePage {
    * Navigate to Demoblaze cart page
    */
   async navigateToDemoblazeCart(): Promise<void> {
-    await this.page.click('#cartur');
-    await this.page.waitForSelector('tbody');
+    await this.page.locator('#cartur').click();
+    await this.page.waitForSelector('tbody', { state: 'visible', timeout: 15000 });
   }
 
   async getCartItemsCount(): Promise<number> {
-    // Wait for cart to load
-    await this.page.waitForSelector('.success', { timeout: 10000 });
+    // Wait for cart table to load
+    await this.page.waitForSelector('tbody', { state: 'visible', timeout: 15000 });
 
-    // Count the number of items in the cart
-    const items = await this.cartRows.count();
-    return items;
+    // Count the number of items in the cart (excluding header row if present)
+    const rows = await this.cartRows.all();
+    let count = 0;
+    for (const row of rows) {
+      const cells = await row.locator('td').count();
+      if (cells > 0) {
+        const firstCellText = await row.locator('td').first().textContent();
+        // Skip if it's a header row
+        if (firstCellText && !firstCellText.trim().toLowerCase().includes('pic')) {
+          count++;
+        }
+      }
+    }
+    return count;
   }
 
   async getCartItems(): Promise<CartItem[]> {
+    await this.page.waitForSelector('tbody', { state: 'visible', timeout: 15000 });
     const items: CartItem[] = [];
-    const count = await this.getCartItemsCount();
+    const rows = await this.cartRows.all();
 
-    for (let i = 0; i < count; i++) {
-      const title = (await this.page.locator('td:nth-child(2)').nth(i).textContent()) || '';
-      const price = (await this.page.locator('td:nth-child(3)').nth(i).textContent()) || '';
-
-      items.push({
-        name: title,
-        price: price,
-        quantity: 1, // Demoblaze doesn't show quantity in cart
-        size: undefined,
-        color: undefined,
-      });
+    for (const row of rows) {
+      const cells = await row.locator('td').count();
+      if (cells >= 3) {
+        // Title is in 2nd column (index 1), Price is in 3rd column (index 2)
+        const title = (await row.locator('td').nth(1).textContent()) || '';
+        const price = (await row.locator('td').nth(2).textContent()) || '';
+        // Skip header rows
+        if (title.trim() && !title.trim().toLowerCase().includes('title')) {
+          items.push({
+            name: title.trim(),
+            price: price.trim(),
+            quantity: 1, // Demoblaze doesn't show quantity in cart
+            size: undefined,
+            color: undefined,
+          });
+        }
+      }
     }
 
     return items;
@@ -103,12 +121,16 @@ export class ShoppingCartPage extends BasePage {
   }
 
   async removeItem(itemIndex: number): Promise<void> {
+    await this.page.waitForSelector('tbody tr td a', { state: 'visible', timeout: 15000 });
     await this.deleteLinks.nth(itemIndex).click();
-    await this.page.waitForTimeout(1000); // Wait for update
+    await this.page.waitForTimeout(1500); // Wait for cart to update
   }
 
   async proceedToCheckout(): Promise<void> {
+    await this.page.waitForSelector('button.btn-success', { state: 'visible', timeout: 15000 });
     await this.placeOrderButton.click();
+    // Wait for order modal to appear
+    await this.page.waitForSelector('#orderModal', { state: 'visible', timeout: 15000 });
   }
 
   async continueShopping(): Promise<void> {
