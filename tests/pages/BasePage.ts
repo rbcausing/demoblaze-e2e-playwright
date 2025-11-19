@@ -13,10 +13,10 @@ export class BasePage {
 
   /**
    * Wait for page to load completely
-   * Uses networkidle to ensure all network requests are complete
+   * Uses 'load' instead of 'networkidle' for faster, more reliable CI execution
    */
   async waitForLoad(): Promise<void> {
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
   }
 
   /**
@@ -45,7 +45,6 @@ export class BasePage {
    * Navigate to a URL
    */
   async goto(url: string): Promise<void> {
-    await this.page.goto(url, { waitUntil: 'domcontentloaded' });
-    await this.waitForLoad();
+    await this.page.goto(url, { waitUntil: 'load' });
   }
 }

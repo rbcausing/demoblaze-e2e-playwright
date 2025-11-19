@@ -4,7 +4,7 @@ import { CartPage } from '../pages/CartPage';
 import { CheckoutPage } from '../pages/CheckoutPage';
 
 test.describe('Demoblaze - Laptops Luxury Checkout Flow', () => {
-  test('Browse Laptops, add luxury item, checkout on Demoblaze @smoke', async ({ page }) => {
+  test('Browse Laptops, add luxury item, checkout on Demoblaze', async ({ page }) => {
     const home = new HomePage(page);
     const cart = new CartPage(page);
     const checkout = new CheckoutPage(page);

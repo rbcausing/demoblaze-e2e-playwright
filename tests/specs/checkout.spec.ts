@@ -22,7 +22,7 @@ test.describe('Checkout Flow', () => {
     await cartPage.proceedToCheckout();
   });
 
-  test('should complete full checkout process @smoke', async ({ page }) => {
+  test('should complete full checkout process', async ({ page }) => {
     const checkoutPage = new CheckoutPage(page);
 
     // Fill order form

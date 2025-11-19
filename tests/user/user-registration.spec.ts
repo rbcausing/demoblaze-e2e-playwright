@@ -3,7 +3,7 @@ import { TestHelpers } from '../utils/helpers';
 
 test.describe('Demoblaze User Authentication', () => {
   test('should open sign up modal @smoke', async ({ page }) => {
-    await page.goto('https://www.demoblaze.com/');
+    await page.goto('https://www.demoblaze.com/', { waitUntil: 'load' });
     await page.waitForSelector('text=Home');
 
     // Ensure mobile menu is expanded if needed (handles mobile navigation)
@@ -14,7 +14,7 @@ test.describe('Demoblaze User Authentication', () => {
 
     // Verify sign up modal opens
     await expect(page.locator('#signInModal')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#signInModal >> text=Sign up')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sign up' })).toBeVisible();
   });
 
   test('should open login modal', async ({ page }) => {

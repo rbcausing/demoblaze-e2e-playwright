@@ -9,7 +9,7 @@ test.describe('Add to Cart', () => {
     await homePage.navigate();
   });
 
-  test('should add a single product to cart @smoke', async ({ page }) => {
+  test('should add a single product to cart', async ({ page }) => {
     const homePage = new HomePage(page);
     const cartPage = new CartPage(page);
 

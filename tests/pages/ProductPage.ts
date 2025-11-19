@@ -35,17 +35,19 @@ export class ProductPage extends BasePage {
    * Handles JavaScript dialog confirmation
    */
   async addToCart(): Promise<void> {
-    // Wait for Add to cart button to be visible
+    // Wait for product details to be visible (indicates page is loaded)
+    await this.page.locator('.product-content, .product-details, #tbodyid').waitFor({ state: 'visible', timeout: 10000 });
+    
+    // Get Add to cart button - auto-wait handles visibility
     const addToCartButton = this.page.getByRole('link', { name: 'Add to cart' });
-    await addToCartButton.waitFor({ state: 'visible', timeout: 15000 });
 
     // Set up dialog handler before clicking
     const dialogPromise = this.page.waitForEvent('dialog', { timeout: 10000 });
     await addToCartButton.click();
     const dialog = await dialogPromise;
     await dialog.accept();
-    // Wait for dialog to close
-    await this.page.waitForLoadState('domcontentloaded');
+    // Brief wait for dialog to close
+    await this.page.waitForTimeout(500);
   }
 
   /**

@@ -10,7 +10,7 @@ test.describe('User Registration', () => {
 
     // Verify sign up modal opens
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('Sign up')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sign up' })).toBeVisible();
   });
 
   test('should register new user successfully', async ({ page }) => {

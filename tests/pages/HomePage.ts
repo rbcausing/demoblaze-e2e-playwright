@@ -81,7 +81,7 @@ export class HomePage extends BasePage {
     const categoryName = categoryMap[category] || category;
     await this.page.getByRole('link', { name: categoryName }).click();
     // Wait for products to load - look for product cards
-    await this.page.getByText('Add to cart').first().waitFor({ state: 'visible', timeout: 15000 });
+    await this.page.locator('.card-block').first().waitFor({ state: 'visible', timeout: 10000 });
   }
 
   /**
@@ -154,7 +154,7 @@ export class HomePage extends BasePage {
    */
   async findAndAddLuxuryItem(): Promise<void> {
     // Wait for products to be visible
-    await this.page.getByText('Add to cart').first().waitFor({ state: 'visible', timeout: 15000 });
+    await this.page.locator('.card-block').first().waitFor({ state: 'visible', timeout: 10000 });
 
     // Get all product links (exclude navigation links)
     const productLinks = this.page.getByRole('link').filter({
