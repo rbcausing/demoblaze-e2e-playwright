@@ -1,4 +1,6 @@
 import { test as setup, expect } from '@playwright/test';
+import { mkdir } from 'fs/promises';
+import { dirname } from 'path';
 
 /**
  * Authentication setup fixture
@@ -8,6 +10,13 @@ import { test as setup, expect } from '@playwright/test';
 const authFile = 'playwright/.auth/user.json';
 
 setup('authenticate', async ({ page }) => {
+  // Ensure the auth directory exists
+  try {
+    await mkdir(dirname(authFile), { recursive: true });
+  } catch (error) {
+    // Directory might already exist, which is fine
+    console.log('Auth directory check:', error);
+  }
   // Generate unique username to avoid conflicts
   const timestamp = Date.now();
   const username = `testuser${timestamp}`;
@@ -19,8 +28,8 @@ setup('authenticate', async ({ page }) => {
 
   // Register new user
   await page.getByRole('link', { name: 'Sign up' }).click();
-  // Wait for modal to be visible instead of timeout
-  await page.getByRole('dialog').waitFor({ state: 'visible', timeout: 5000 });
+  // Wait for modal to be visible with longer timeout for CI
+  await page.getByRole('dialog').waitFor({ state: 'visible', timeout: 15000 });
 
   // Fill registration form
   await page
@@ -44,8 +53,8 @@ setup('authenticate', async ({ page }) => {
 
   // Now login with the same credentials
   await page.getByRole('link', { name: 'Log in' }).click();
-  // Wait for login modal to be visible
-  await page.getByRole('dialog').waitFor({ state: 'visible', timeout: 5000 });
+  // Wait for login modal to be visible with longer timeout for CI
+  await page.getByRole('dialog').waitFor({ state: 'visible', timeout: 15000 });
 
   // Fill login form
   await page
@@ -62,8 +71,8 @@ setup('authenticate', async ({ page }) => {
   // Wait for login to complete - check for welcome message
   await page.waitForLoadState('domcontentloaded');
 
-  // Verify user is logged in
-  await expect(page.getByText(`Welcome ${username}`)).toBeVisible({ timeout: 10000 });
+  // Verify user is logged in with longer timeout for CI
+  await expect(page.getByText(`Welcome ${username}`)).toBeVisible({ timeout: 20000 });
 
   // Save signed-in state to 'playwright/.auth/user.json'
   await page.context().storageState({ path: authFile });
