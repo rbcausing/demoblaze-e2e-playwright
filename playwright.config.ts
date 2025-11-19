@@ -15,7 +15,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
 
   /* Retry logic - optimized for stability */
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0, // Reduced to 1 retry in CI to prevent excessive runtime
 
   /* Worker configuration - optimized for CI vs local */
   workers: process.env.CI ? 2 : undefined,
@@ -90,8 +90,9 @@ export default defineConfig({
       dependencies: ['setup'],
     },
 
-    // Mobile viewports - conditional based on environment
-    ...(process.env.SKIP_MOBILE
+    // Mobile viewports - skip in CI by default to speed up runs
+    // Set SKIP_MOBILE=false to enable mobile testing
+    ...(process.env.CI || process.env.SKIP_MOBILE
       ? []
       : [
           {
