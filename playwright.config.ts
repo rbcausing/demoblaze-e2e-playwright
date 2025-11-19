@@ -6,7 +6,13 @@ import { defineConfig, devices } from '@playwright/test';
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './tests/specs',
+  testDir: './tests',
+  
+  /* Match test files */
+  testMatch: '**/*.spec.ts',
+  
+  /* Ignore fixture and utility files */
+  testIgnore: ['**/fixtures/**', '**/utils/**', '**/pages/**', '**/config/**', '**/data/**'],
 
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -15,13 +21,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
 
   /* Retry logic - optimized for stability */
-  retries: process.env.CI ? 1 : 0, // Reduced to 1 retry in CI to prevent excessive runtime
+  retries: process.env.CI ? 0 : 0, // No retries to speed up CI
 
   /* Worker configuration - optimized for CI vs local */
-  workers: process.env.CI ? 2 : undefined,
+  workers: process.env.CI ? 4 : undefined, // Increased to 4 workers for faster CI
 
   /* Global timeout for each test */
-  timeout: 60000, // 60 seconds per test
+  timeout: 45000, // 45 seconds per test
 
   /* Expect timeout for assertions */
   expect: {
@@ -73,22 +79,28 @@ export default defineConfig({
       testDir: './tests/fixtures',
     },
 
-    // Desktop browsers - primary testing targets
+    // Desktop browsers - Chromium only in CI for speed, all browsers locally
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
     },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-      dependencies: ['setup'],
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-      dependencies: ['setup'],
-    },
+    
+    // Firefox and WebKit - only run locally or when TEST_ALL_BROWSERS=true
+    ...(process.env.CI && !process.env.TEST_ALL_BROWSERS
+      ? []
+      : [
+          {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+            dependencies: ['setup'],
+          },
+          {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+            dependencies: ['setup'],
+          },
+        ]),
 
     // Mobile viewports - skip in CI by default to speed up runs
     // Set SKIP_MOBILE=false to enable mobile testing
