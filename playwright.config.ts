@@ -7,10 +7,10 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
-  
+
   /* Match test files */
   testMatch: '**/*.spec.ts',
-  
+
   /* Ignore fixture and utility files */
   testIgnore: ['**/fixtures/**', '**/utils/**', '**/pages/**', '**/config/**', '**/data/**'],
 
@@ -86,7 +86,7 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
     },
-    
+
     // Firefox and WebKit - only run locally or when TEST_ALL_BROWSERS=true
     ...(process.env.CI && !process.env.TEST_ALL_BROWSERS
       ? []

@@ -36,8 +36,10 @@ export class ProductPage extends BasePage {
    */
   async addToCart(): Promise<void> {
     // Wait for product details to be visible (indicates page is loaded)
-    await this.page.locator('.product-content, .product-details, #tbodyid').waitFor({ state: 'visible', timeout: 10000 });
-    
+    await this.page
+      .locator('.product-content, .product-details, #tbodyid')
+      .waitFor({ state: 'visible', timeout: 10000 });
+
     // Get Add to cart button - auto-wait handles visibility
     const addToCartButton = this.page.getByRole('link', { name: 'Add to cart' });
 
