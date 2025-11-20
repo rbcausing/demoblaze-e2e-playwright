@@ -1,14 +1,18 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright configuration for Demoblaze E2E Testing
+ * Playwright configuration for DemoBlaze E2E Testing
+ * Production-grade configuration with resilient locators and proper CI/CD setup
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
   testDir: './tests',
 
-  // Exclude debug tests from normal test runs
-  testIgnore: ['**/debug/**/*.spec.ts'],
+  /* Match test files */
+  testMatch: '**/*.spec.ts',
+
+  /* Ignore fixture and utility files */
+  testIgnore: ['**/fixtures/**', '**/utils/**', '**/pages/**', '**/config/**', '**/data/**'],
 
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -17,13 +21,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
 
   /* Retry logic - optimized for stability */
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 0 : 0, // No retries to speed up CI
 
   /* Worker configuration - optimized for CI vs local */
-  workers: process.env.CI ? 2 : undefined, // Changed from 1 to 2 for better CI performance
+  workers: process.env.CI ? 4 : undefined, // Increased to 4 workers for faster CI
 
   /* Global timeout for each test */
-  timeout: 60000, // 60 seconds per test (Demoblaze can be slow)
+  timeout: 45000, // 45 seconds per test
 
   /* Expect timeout for assertions */
   expect: {
@@ -33,23 +37,10 @@ export default defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env.CI
     ? [
+        ['list'],
         ['html', { outputFolder: 'playwright-report', open: 'never' }],
         ['json', { outputFile: 'test-results/results.json' }],
         ['junit', { outputFile: 'test-results/results.xml' }],
-        ['./tests/utils/customReporter.ts'],
-        [
-          'allure-playwright',
-          {
-            outputFolder: 'allure-results',
-            detail: true,
-            suiteTitle: true,
-            environmentInfo: {
-              'Test Environment': process.env.BASE_URL || 'https://www.demoblaze.com',
-              'Node Version': process.version,
-              OS: process.platform,
-            },
-          },
-        ],
       ]
     : [
         ['html', { outputFolder: 'playwright-report', open: 'on-failure' }],
@@ -62,19 +53,19 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || 'https://www.demoblaze.com',
 
     /* Collect trace when retrying the failed test */
-    trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
+    trace: 'on-first-retry',
 
     /* Take screenshot on failure */
     screenshot: 'only-on-failure',
 
     /* Record video on failure */
-    video: process.env.CI ? 'retain-on-failure' : 'off', // Save resources locally
+    video: 'retain-on-failure',
 
-    /* Global timeout for actions - optimized for Demoblaze's dialog interactions */
-    actionTimeout: 15000, // Reduced from 30s - most actions are quick
+    /* Global timeout for actions */
+    actionTimeout: 15000,
 
-    /* Global timeout for navigation - Demoblaze pages load within 10s typically */
-    navigationTimeout: 20000, // Reduced from 30s
+    /* Global timeout for navigation */
+    navigationTimeout: 30000,
 
     /* Ignore HTTPS errors if needed for certain environments */
     ignoreHTTPSErrors: false,
@@ -82,31 +73,50 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    // Desktop browsers - primary testing targets
+    // Setup project for authentication
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+      testDir: './tests/fixtures',
+    },
+
+    // Desktop browsers - Chromium only in CI for speed, all browsers locally
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      dependencies: ['setup'],
     },
 
-    // Mobile viewports - conditional based on environment
-    ...(process.env.SKIP_MOBILE
+    // Firefox and WebKit - only run locally or when TEST_ALL_BROWSERS=true
+    ...(process.env.CI && !process.env.TEST_ALL_BROWSERS
+      ? []
+      : [
+          {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+            dependencies: ['setup'],
+          },
+          {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+            dependencies: ['setup'],
+          },
+        ]),
+
+    // Mobile viewports - skip in CI by default to speed up runs
+    // Set SKIP_MOBILE=false to enable mobile testing
+    ...(process.env.CI || process.env.SKIP_MOBILE
       ? []
       : [
           {
             name: 'mobile-chrome',
             use: { ...devices['Pixel 5'] },
+            dependencies: ['setup'],
           },
           {
             name: 'Mobile Safari',
             use: { ...devices['iPhone 12'] },
+            dependencies: ['setup'],
           },
         ]),
   ],

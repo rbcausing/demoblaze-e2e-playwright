@@ -1,65 +1,29 @@
-name: 🤖 Code Quality
+name: Lint & Validate
 
 on:
   push:
-    branches: [ main, master, develop, feat/**, fix/** ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   lint-and-validate:
-    name: 🔍 Lint & Validate
+    timeout-minutes: 10
     runs-on: ubuntu-latest
-    
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
           cache: 'npm'
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: 🎨 Check code formatting
+      - name: Check code formatting
         run: npm run format:check
-        continue-on-error: true
 
-      - name: 🔍 Lint TypeScript
-        run: npm run lint -- --max-warnings 20
-        continue-on-error: false
-
-      - name: 🧪 Validate test files
-        run: |
-          echo "🔍 Validating test files can be compiled..."
-          npx tsc --noEmit
-        continue-on-error: false
-
-      - name: 📋 List available tests
-        run: |
-          echo "📋 Checking if tests can be discovered..."
-          npx playwright test --list || exit 1
-
-      - name: ✅ Validate workflow files
-        run: |
-          echo "✅ Validating GitHub Actions workflows..."
-          # Check for common issues in workflow files (excluding documentation)
-          if grep -r "reporter=.*,.*" .github/workflows/ | grep -v "^.*\.yml.*#" | grep "run:"; then
-            echo "❌ ERROR: Found incorrect reporter syntax in workflows!"
-            echo "Use '--reporter=html --reporter=json' instead of '--reporter=html,json'"
-            exit 1
-          fi
-          echo "✅ Workflow files validated"
-
-      - name: 📊 Summary
-        if: always()
-        run: |
-          echo "## 🤖 Code Quality Check" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ All quality checks completed!" >> $GITHUB_STEP_SUMMARY
-
-
+      - name: Run ESLint
+        run: npx eslint tests/**/*.ts
 

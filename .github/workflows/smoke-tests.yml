@@ -1,4 +1,4 @@
-name: Playwright Tests
+name: Smoke Tests (chromium)
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [main, master]
 
 jobs:
-  test:
-    timeout-minutes: 60
+  smoke-tests:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,18 +22,18 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-playwright-chromium-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-playwright-
+            ${{ runner.os }}-playwright-chromium-
 
-      - name: Run Playwright tests
-        run: npx playwright test --grep @smoke
+      - name: Run smoke tests on Chromium
+        run: npx playwright test --grep @smoke --project=chromium
         env:
           BASE_URL: https://www.demoblaze.com
           CI: true
@@ -42,7 +42,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: smoke-tests-report
           path: playwright-report/
           retention-days: 30
 
@@ -50,6 +50,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-traces
+          name: smoke-tests-traces
           path: test-results/
           retention-days: 30
+

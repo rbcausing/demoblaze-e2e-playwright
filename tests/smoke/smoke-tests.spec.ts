@@ -3,13 +3,10 @@ import { TestHelpers } from '../utils/helpers';
 
 test.describe('Demoblaze Smoke Tests - Critical Functionality', () => {
   test('should load homepage successfully @smoke', async ({ page }) => {
-    await page.goto('https://www.demoblaze.com/', { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle', { timeout: 30000 }).catch(() => {
-      // Ignore networkidle timeout - site may have ongoing requests
-    });
+    await page.goto('https://www.demoblaze.com/', { waitUntil: 'load' });
 
-    // Verify page loads with increased timeout for CI
-    await expect(page).toHaveTitle(/STORE/, { timeout: 15000 });
+    // Verify page loads
+    await expect(page).toHaveTitle(/STORE/, { timeout: 10000 });
     await expect(page.locator('text=Home')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=Phones')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=Laptops')).toBeVisible({ timeout: 10000 });
