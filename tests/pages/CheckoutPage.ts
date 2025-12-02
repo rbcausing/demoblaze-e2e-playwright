@@ -11,9 +11,6 @@ export class CheckoutPage extends BasePage {
 
   /**
    * Fill checkout form
-   * Note: DemoBlaze form fields have IDs but no proper labels or placeholders.
-   * Suggestion: Add data-testid attributes (data-testid="checkout-name", etc.) for better testability.
-   * Currently using getByRole('textbox') with position-based selection as a last resort.
    */
   async fillForm(
     name: string,
@@ -23,16 +20,11 @@ export class CheckoutPage extends BasePage {
     month: string,
     year: string
   ): Promise<void> {
-    // Wait for order modal to be visible
     const dialog = this.page.getByRole('dialog');
     await dialog.waitFor({ state: 'visible', timeout: 15000 });
 
-    // Get all textboxes in the dialog - DemoBlaze form fields don't have labels/placeholders
-    // We use position-based selection as last resort (fields are in consistent order)
-    // TODO: Suggest adding data-testid attributes to DemoBlaze team
     const textboxes = dialog.getByRole('textbox');
 
-    // Fill fields in order: Name, Country, City, Card, Month, Year
     await textboxes.nth(0).fill(name);
     await textboxes.nth(1).fill(country);
     await textboxes.nth(2).fill(city);
@@ -45,11 +37,9 @@ export class CheckoutPage extends BasePage {
    * Complete purchase
    */
   async completePurchase(): Promise<void> {
-    // Purchase button - look for button with "Purchase" text
     const purchaseButton = this.page.getByRole('button', { name: /Purchase/i });
     await purchaseButton.waitFor({ state: 'visible', timeout: 15000 });
     await purchaseButton.click();
-    // Wait for confirmation modal to appear
     await this.page
       .getByText('Thank you for your purchase!')
       .waitFor({ state: 'visible', timeout: 15000 });
@@ -102,20 +92,10 @@ export class CheckoutPage extends BasePage {
 
   /**
    * Get order details text
-   * Note: Using getByText to find the lead paragraph with order details
-   * Suggestion: Add data-testid="order-details" for better testability
    */
   async getOrderDetails(): Promise<string> {
-    // Order details are in a lead paragraph after the confirmation
-    // Find text containing order information patterns
     const detailsText = this.page.getByText(/Id:.*Amount:.*Card:.*Name:/s);
-    const text = await detailsText.textContent();
-    if (text) {
-      return text;
-    }
-    // Fallback: try to find any text with order details
-    const fallbackText = this.page.getByText(/Id:\s*\d+/);
-    return (await fallbackText.textContent()) || '';
+    return (await detailsText.textContent()) || '';
   }
 
   /**

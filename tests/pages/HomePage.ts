@@ -18,7 +18,6 @@ export class HomePage extends BasePage {
       waitUntil: 'domcontentloaded',
     });
     await this.waitForLoad();
-    // Wait for navigation to be visible
     await this.page.getByRole('link', { name: 'Home' }).waitFor({ state: 'visible' });
   }
 
@@ -46,7 +45,6 @@ export class HomePage extends BasePage {
 
   /**
    * Click on Cart link
-   * Note: Using getByRole with 'Cart' text as DemoBlaze doesn't have data-testid
    */
   async clickCart(): Promise<void> {
     await this.page.getByRole('link', { name: 'Cart' }).click();
@@ -72,15 +70,7 @@ export class HomePage extends BasePage {
    * @param category - Category name: 'Laptops', 'Phones', or 'Monitors'
    */
   async selectCategory(category: string): Promise<void> {
-    const categoryMap: Record<string, string> = {
-      Laptops: 'Laptops',
-      Phones: 'Phones',
-      Monitors: 'Monitors',
-    };
-
-    const categoryName = categoryMap[category] || category;
-    await this.page.getByRole('link', { name: categoryName }).click();
-    // Wait for products to load - look for product cards
+    await this.page.getByRole('link', { name: category }).click();
     await this.page.locator('.card-block').first().waitFor({ state: 'visible', timeout: 10000 });
   }
 
@@ -109,8 +99,6 @@ export class HomePage extends BasePage {
    * Click on the first product in the current category
    */
   async clickFirstProduct(): Promise<void> {
-    // Find the first product link by looking for product titles
-    // Products are in cards with links - use getByRole to find the first product link
     const productLinks = this.page
       .getByRole('link')
       .filter({ hasText: /Samsung|Nokia|Sony|MacBook|Dell|ASUS|Apple|HP|Lenovo|Monitor/i });
@@ -129,34 +117,24 @@ export class HomePage extends BasePage {
 
   /**
    * Add product to cart from product detail page
-   * Handles JavaScript dialog confirmation
    */
   async addToCartFromProductPage(): Promise<void> {
-    // Wait for Add to cart button to be visible
     const addToCartButton = this.page.getByRole('link', { name: 'Add to cart' });
     await addToCartButton.waitFor({ state: 'visible', timeout: 15000 });
 
-    // Set up dialog handler before clicking
     const dialogPromise = this.page.waitForEvent('dialog', { timeout: 10000 });
     await addToCartButton.click();
     const dialog = await dialogPromise;
     await dialog.accept();
-    // Wait for dialog to close - use waitForLoadState instead of timeout
     await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**
    * Find and add the most expensive (luxury) item to cart
-   * Parses all product prices and identifies the highest-priced item
-   * Note: Uses getByRole to find products. For price comparison, navigates to each product page.
-   * This is a last-resort approach when prices aren't easily accessible on listing page.
-   * Suggestion: Add data-testid="product-price" to product cards for better testability.
    */
   async findAndAddLuxuryItem(): Promise<void> {
-    // Wait for products to be visible
     await this.page.locator('.card-block').first().waitFor({ state: 'visible', timeout: 10000 });
 
-    // Get all product links (exclude navigation links)
     const productLinks = this.page.getByRole('link').filter({
       hasNotText: /Home|Contact|About|Cart|Log|Sign|Add to cart/i,
     });
@@ -169,62 +147,42 @@ export class HomePage extends BasePage {
     let maxPrice = 0;
     let luxuryIndex = 0;
 
-    // For each product, navigate to its page and check price
     for (let i = 0; i < productCount; i++) {
-      try {
-        // Get product link by index (using nth as last resort for product list)
-        const productLink = productLinks.nth(i);
-        const productName = await productLink.textContent();
+      const productLink = productLinks.nth(i);
+      const productName = await productLink.textContent();
 
-        if (!productName || !productName.trim()) continue;
+      if (!productName || !productName.trim()) continue;
 
-        // Navigate to product page
-        await productLink.click();
-        await this.waitForLoad();
+      await productLink.click();
+      await this.waitForLoad();
 
-        // Get price from product detail page using getByRole
-        const priceHeading = this.page.getByRole('heading', { level: 3 }).filter({ hasText: '$' });
-        const priceText = await priceHeading.textContent();
+      const priceHeading = this.page.getByRole('heading', { level: 3 }).filter({ hasText: '$' });
+      const priceText = await priceHeading.textContent();
 
-        if (priceText) {
-          const priceMatch = priceText.match(/\$(\d+)/);
-          if (priceMatch) {
-            const price = parseFloat(priceMatch[1]);
-            if (!isNaN(price) && price > maxPrice) {
-              maxPrice = price;
-              luxuryIndex = i;
-            }
+      if (priceText) {
+        const priceMatch = priceText.match(/\$(\d+)/);
+        if (priceMatch) {
+          const price = parseFloat(priceMatch[1]);
+          if (!isNaN(price) && price > maxPrice) {
+            maxPrice = price;
+            luxuryIndex = i;
           }
         }
-
-        // Go back to product list
-        await this.page.goBack();
-        await this.waitForLoad();
-        // Wait a bit for page to stabilize
-        await this.page.waitForLoadState('domcontentloaded');
-      } catch (error) {
-        // If error, try to go back and continue
-        try {
-          await this.page.goBack();
-          await this.waitForLoad();
-        } catch {
-          // If can't go back, navigate to home
-          await this.navigate();
-        }
-        continue;
       }
+
+      await this.page.goBack();
+      await this.waitForLoad();
+      await this.page.waitForLoadState('domcontentloaded');
     }
 
     if (maxPrice === 0) {
       throw new Error('No valid product prices found');
     }
 
-    // Navigate to the luxury product
     const luxuryLink = productLinks.nth(luxuryIndex);
     await luxuryLink.click();
     await this.waitForLoad();
 
-    // Add to cart
     await this.addToCartFromProductPage();
   }
 
@@ -246,10 +204,8 @@ export class HomePage extends BasePage {
 
   /**
    * Get all product titles from the current page
-   * Note: Uses getByRole to find product links, filtering out navigation links
    */
   async getProductTitles(): Promise<string[]> {
-    // Product titles are in links - exclude navigation and action links
     const productLinks = this.page.getByRole('link').filter({
       hasNotText: /Home|Contact|About|Cart|Log|Sign|Add to cart/i,
     });
