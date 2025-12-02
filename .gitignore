@@ -150,3 +150,6 @@ allure-report/
 
 # Plan and temporary documentation files
 *.plan.md
+
+# Archived files
+.old-slop/
